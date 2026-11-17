@@ -1,0 +1,26 @@
+# dependencies
+node_modules/
+
+# build output
+dist/
+storybook-static/
+*.tsbuildinfo
+*.tgz
+
+# tooling
+.turbo/
+coverage/
+playwright-report/
+test-results/
+.vercel/
+**/temp/
+
+# env
+.env*
+!.env.example
+
+# os / editor
+.DS_Store
+Thumbs.db
+.idea/
+*.log
