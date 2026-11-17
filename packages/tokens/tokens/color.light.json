@@ -1,0 +1,24 @@
+{
+  "$description": "Colour roles for the light theme. Every text/background pair is checked against WCAG 2.1 contrast in src/contrast.test.ts.",
+  "color": {
+    "$type": "color",
+    "bg": { "$value": "#ffffff", "$description": "Page and grid body background." },
+    "surface": { "$value": "#f4f6f9", "$description": "Header row, toolbars, popover background." },
+    "surface-hover": { "$value": "#e9edf3", "$description": "Hovered rows and options." },
+    "text": { "$value": "#161a21" },
+    "text-muted": { "$value": "#4f5868" },
+    "border": {
+      "$value": "#d5dae2",
+      "$description": "Decorative separators (no contrast requirement)."
+    },
+    "border-strong": {
+      "$value": "#737d8f",
+      "$description": "Borders that identify a control (3:1)."
+    },
+    "accent": { "$value": "#0a58b8" },
+    "accent-text": { "$value": "#ffffff", "$description": "Text on the accent colour." },
+    "accent-subtle": { "$value": "#e3eefc", "$description": "Selected rows and options." },
+    "focus": { "$value": "#0a58b8" },
+    "danger": { "$value": "#b3261e" }
+  }
+}

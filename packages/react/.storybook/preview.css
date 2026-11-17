@@ -1,0 +1,43 @@
+/* Page chrome for stories only; components never style <body>. */
+:root {
+  color-scheme: light dark;
+}
+
+:root[data-tbw-theme="light"] {
+  color-scheme: light;
+}
+
+:root[data-tbw-theme="dark"] {
+  color-scheme: dark;
+}
+
+body,
+.docs-story {
+  background: var(--tbw-color-bg);
+  color: var(--tbw-color-text);
+  font-family: var(--tbw-font-family-sans);
+  font-size: var(--tbw-font-size-md);
+  line-height: var(--tbw-font-line-height-normal);
+}
+
+/* Minimal controls for stories that need a button before the library has one. */
+.story-button,
+.story-icon-button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--tbw-space-2);
+  min-height: var(--tbw-size-control);
+  padding: 0 var(--tbw-space-3);
+  border: 1px solid var(--tbw-color-border-strong);
+  border-radius: var(--tbw-radius-md);
+  background: var(--tbw-color-surface);
+  color: var(--tbw-color-text);
+  font: inherit;
+  cursor: pointer;
+}
+
+.story-button:focus-visible,
+.story-icon-button:focus-visible {
+  outline: var(--tbw-size-focus-ring) solid var(--tbw-color-focus);
+  outline-offset: var(--tbw-size-focus-offset);
+}

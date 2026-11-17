@@ -1,0 +1,50 @@
+{
+  "name": "@tabellwerk/tokens",
+  "version": "0.0.0",
+  "description": "Framework-neutral design tokens for Tabellwerk: CSS custom properties for light, dark and forced-colors modes, plus typed JavaScript references",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": [
+    "*.css"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./tokens.css": "./dist/tokens.css",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist"
+  ],
+  "keywords": [
+    "design-tokens",
+    "css-custom-properties",
+    "dtcg",
+    "tabellwerk"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Grigormrd/tabellwerk.git",
+    "directory": "packages/tokens"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "package-check": "publint --strict && attw --pack . --profile esm-only --exclude-entrypoints ./tokens.css"
+  },
+  "devDependencies": {
+    "@arethetypeswrong/cli": "^0.18.5",
+    "publint": "^0.3.25",
+    "style-dictionary": "^5.8.0",
+    "typescript": "~6.0.3",
+    "vitest": "^5.1.0"
+  }
+}

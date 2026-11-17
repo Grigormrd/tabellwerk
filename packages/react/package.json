@@ -1,0 +1,94 @@
+{
+  "name": "@tabellwerk/react",
+  "version": "0.0.0",
+  "description": "Accessible React components centred on a fast, keyboard-friendly data grid",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": [
+    "*.css"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./live-announcer": {
+      "types": "./dist/live-announcer.d.ts",
+      "default": "./dist/live-announcer.js"
+    },
+    "./visually-hidden": {
+      "types": "./dist/visually-hidden.d.ts",
+      "default": "./dist/visually-hidden.js"
+    },
+    "./styles.css": "./dist/styles.css",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist"
+  ],
+  "keywords": [
+    "react",
+    "accessibility",
+    "a11y",
+    "wai-aria",
+    "data-grid",
+    "combobox",
+    "date-picker",
+    "tabellwerk"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Grigormrd/tabellwerk.git",
+    "directory": "packages/react"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "scripts": {
+    "build": "tsdown && node scripts/build-css.mjs",
+    "build:docs": "storybook build --quiet --output-dir storybook-static",
+    "storybook": "storybook dev --port 6006 --no-open",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.lib.json",
+    "test": "vitest run",
+    "e2e": "playwright test --project a11y",
+    "visual": "playwright test --project visual",
+    "package-check": "publint --strict && attw --pack . --profile esm-only --exclude-entrypoints ./styles.css && size-limit && api-extractor run",
+    "api:update": "api-extractor run --local"
+  },
+  "dependencies": {
+    "@tabellwerk/tokens": "workspace:^"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@arethetypeswrong/cli": "^0.18.5",
+    "@axe-core/playwright": "^4.14.0",
+    "@microsoft/api-extractor": "^7.60.1",
+    "@playwright/test": "1.65.0",
+    "@size-limit/preset-small-lib": "^14.3.0",
+    "@storybook/addon-a11y": "^10.6.7",
+    "@storybook/addon-docs": "^10.6.7",
+    "@storybook/addon-vitest": "^10.6.7",
+    "@storybook/react-vite": "^10.6.7",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.3.0",
+    "@vitest/browser": "^5.1.0",
+    "@vitest/browser-playwright": "^5.1.0",
+    "playwright": "1.65.0",
+    "publint": "^0.3.25",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "size-limit": "^14.3.0",
+    "storybook": "^10.6.7",
+    "tsdown": "^0.23.7",
+    "typescript": "~6.0.3",
+    "vite": "^8.3.8",
+    "vitest": "^5.1.0",
+    "vitest-browser-react": "^2.3.0"
+  }
+}

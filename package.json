@@ -1,0 +1,41 @@
+{
+  "name": "tabellwerk",
+  "private": true,
+  "description": "Accessible React components centred on a fast data grid",
+  "license": "MIT",
+  "type": "module",
+  "packageManager": "pnpm@12.18.0",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "build": "turbo run build",
+    "build:docs": "turbo run build:docs",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "check": "turbo run lint typecheck test build package-check",
+    "storybook": "pnpm --filter @tabellwerk/react storybook",
+    "e2e": "pnpm --filter @tabellwerk/react e2e",
+    "visual": "pnpm --filter @tabellwerk/react visual",
+    "visual:update": "node scripts/visual-in-docker.mjs",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "changeset": "changeset"
+  },
+  "devDependencies": {
+    "@changesets/changelog-github": "^1.0.1",
+    "@changesets/cli": "^3.0.3",
+    "@eslint/js": "^9.39.5",
+    "@types/node": "^24.19.2",
+    "eslint": "^9.39.5",
+    "eslint-plugin-jsx-a11y": "^6.10.2",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-storybook": "^10.6.7",
+    "globals": "^16.5.0",
+    "prettier": "^3.9.10",
+    "turbo": "^2.11.11",
+    "typescript": "~6.0.3",
+    "typescript-eslint": "^8.72.1"
+  }
+}

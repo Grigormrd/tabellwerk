@@ -1,0 +1,14 @@
+{
+  // The published source only. `isolatedDeclarations` forces explicit types on
+  // every export, so the public API is written down rather than inferred, and
+  // declaration files can be emitted per file without the type checker.
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "allowImportingTsExtensions": true,
+    "isolatedDeclarations": true,
+    "declaration": true,
+    "types": []
+  },
+  "include": ["src"],
+  "exclude": ["src/**/*.stories.tsx", "src/**/*.test.ts", "src/**/*.test.tsx"]
+}
