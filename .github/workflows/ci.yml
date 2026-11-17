@@ -1,0 +1,99 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Format, lint, typecheck, test, build, package checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # The component tests run in a real Chromium (Vitest browser mode).
+      - run: pnpm --filter @tabellwerk/react exec playwright install --with-deps chromium
+
+      - run: pnpm format:check
+
+      - run: pnpm check
+
+  a11y:
+    name: Accessibility (axe, light / dark / forced colours)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm --filter @tabellwerk/react exec playwright install --with-deps chromium
+
+      - run: pnpm build:docs
+
+      - run: pnpm e2e
+
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: a11y-report
+          path: packages/react/playwright-report
+          retention-days: 7
+
+  visual:
+    name: Visual regression
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    # Same image as `pnpm visual:update` uses locally, so baselines match.
+    container:
+      image: mcr.microsoft.com/playwright:v1.65.0-noble
+      options: --ipc=host
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm build:docs
+
+      - run: pnpm visual
+
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: visual-diff
+          path: |
+            packages/react/playwright-report
+            packages/react/test-results
+          retention-days: 7

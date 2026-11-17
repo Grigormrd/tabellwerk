@@ -1,0 +1,26 @@
+[
+  {
+    "name": "Everything (index)",
+    "path": "dist/index.js",
+    "import": "*",
+    "limit": "1 kB"
+  },
+  {
+    "name": "LiveAnnouncer only",
+    "path": "dist/live-announcer.js",
+    "import": "{ LiveAnnouncer, useAnnouncer }",
+    "limit": "800 B"
+  },
+  {
+    "name": "VisuallyHidden only",
+    "path": "dist/visually-hidden.js",
+    "import": "{ VisuallyHidden }",
+    "limit": "300 B"
+  },
+  {
+    "name": "styles.css",
+    "path": "dist/styles.css",
+    "limit": "1.2 kB",
+    "rolldown": false
+  }
+]

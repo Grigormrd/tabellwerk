@@ -1,0 +1,30 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      minor-and-patch:
+        update-types: [minor, patch]
+    ignore:
+      # Types must match the Node.js version CI runs (see .nvmrc).
+      - dependency-name: "@types/node"
+        update-types: [version-update:semver-major]
+      # eslint-plugin-jsx-a11y does not support ESLint 10 yet.
+      - dependency-name: eslint
+        update-types: [version-update:semver-major]
+      - dependency-name: "@eslint/js"
+        update-types: [version-update:semver-major]
+      # typescript-eslint supports TypeScript < 6.1 (ADR 1).
+      - dependency-name: typescript
+        update-types: [version-update:semver-major, version-update:semver-minor]
+      # The Playwright version is pinned to the browser build and the Docker
+      # image the visual baselines were recorded in; update all three together.
+      - dependency-name: "@playwright/test"
+      - dependency-name: playwright
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly

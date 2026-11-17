@@ -1,0 +1,17 @@
+/*
+ * Cascade layers keep every rule of the library below unlayered CSS, so an
+ * application can override any style without fighting specificity:
+ *   tabellwerk.tokens      custom properties from @tabellwerk/tokens
+ *   tabellwerk.components  component styles
+ */
+@layer tabellwerk.tokens, tabellwerk.components;
+
+@layer tabellwerk.components {
+  [data-tbw-theme="light"] {
+    color-scheme: light;
+  }
+
+  [data-tbw-theme="dark"] {
+    color-scheme: dark;
+  }
+}

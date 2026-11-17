@@ -1,0 +1,43 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+
+<Meta title="Introduction" />
+
+# Tabellwerk
+
+Accessible React components centred on a fast data grid. Every component follows the
+[WAI-ARIA Authoring Practices](https://www.w3.org/WAI/ARIA/apg/), works with the keyboard alone
+and is tested with axe in light, dark and forced-colours mode.
+
+> Tabellwerk is under construction. The data grid, combobox and date picker are being built in
+> phases; see the roadmap in the repository.
+
+## Installation
+
+```bash
+pnpm add @tabellwerk/react
+```
+
+Import the stylesheet once, for example in your root layout:
+
+```tsx
+import "@tabellwerk/react/styles.css";
+```
+
+It contains the design tokens from `@tabellwerk/tokens` and the component styles, all inside the
+cascade layer `tabellwerk`, so any unlayered CSS in your application overrides them.
+
+## Themes
+
+Components follow `prefers-color-scheme` by default. To force a theme for a page or a subtree, set
+the token attribute:
+
+```html
+<html data-tbw-theme="dark"></html>
+```
+
+Use the **Theme** button in the toolbar above to switch the theme of every story.
+
+## Utilities available today
+
+- **VisuallyHidden**: text for assistive technology only.
+- **LiveAnnouncer**: polite and assertive announcements through `useAnnouncer()`.

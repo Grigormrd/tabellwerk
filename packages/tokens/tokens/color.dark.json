@@ -1,0 +1,18 @@
+{
+  "$description": "Colour roles for the dark theme. Same names as color.light.json.",
+  "color": {
+    "$type": "color",
+    "bg": { "$value": "#12151b" },
+    "surface": { "$value": "#1b2029" },
+    "surface-hover": { "$value": "#252b36" },
+    "text": { "$value": "#e7eaf0" },
+    "text-muted": { "$value": "#a4adbd" },
+    "border": { "$value": "#2e3542" },
+    "border-strong": { "$value": "#7d879a" },
+    "accent": { "$value": "#7ab0ff" },
+    "accent-text": { "$value": "#0b1424" },
+    "accent-subtle": { "$value": "#1d2d48" },
+    "focus": { "$value": "#8fbcff" },
+    "danger": { "$value": "#ff8a80" }
+  }
+}
