@@ -8,7 +8,7 @@ const root = new URL("..", import.meta.url);
 const tokensCss = fileURLToPath(import.meta.resolve("@tabellwerk/tokens/tokens.css"));
 
 // Order matters: the layer order statement in base.css must come first.
-const sources = ["src/styles/base.css"];
+const sources = ["src/styles/base.css", "src/data-grid/data-grid.css"];
 
 const parts = [
   await readFile(new URL(sources[0], root), "utf8"),

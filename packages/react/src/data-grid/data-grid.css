@@ -1,0 +1,125 @@
+@layer tabellwerk.components {
+  /*
+   * The grid is its own scroll container: the header row sticks to the top,
+   * body rows are absolutely positioned at index × row height. Column widths
+   * live in one custom property, so a width change restyles every row
+   * without re-rendering any of them.
+   */
+  .tbw-grid {
+    position: relative;
+    block-size: 24rem;
+    overflow: auto;
+    overscroll-behavior: contain;
+    border: 1px solid var(--tbw-color-border);
+    border-radius: var(--tbw-radius-md);
+    background: var(--tbw-color-bg);
+    color: var(--tbw-color-text);
+    font-family: var(--tbw-font-family-sans);
+    font-size: var(--tbw-font-size-md);
+    line-height: var(--tbw-font-line-height-tight);
+  }
+
+  /* The header surface spans the whole viewport, even when the columns are narrower. */
+  .tbw-grid__head {
+    position: sticky;
+    inset-block-start: 0;
+    z-index: 2;
+    inline-size: max(100%, var(--tbw-grid-width));
+    background: var(--tbw-color-surface);
+    border-block-end: 1px solid var(--tbw-color-border-strong);
+  }
+
+  .tbw-grid__header-row,
+  .tbw-grid__row {
+    display: grid;
+    grid-template-columns: var(--tbw-grid-template);
+    inline-size: var(--tbw-grid-width);
+    block-size: var(--tbw-grid-row-height);
+  }
+
+  .tbw-grid__body {
+    position: relative;
+    inline-size: var(--tbw-grid-width);
+  }
+
+  .tbw-grid__row {
+    position: absolute;
+    inset-block-start: 0;
+    inset-inline-start: 0;
+    will-change: transform;
+  }
+
+  .tbw-grid__row:hover {
+    background: var(--tbw-color-surface-hover);
+  }
+
+  .tbw-grid__cell,
+  .tbw-grid__header-cell {
+    display: flex;
+    align-items: center;
+    gap: var(--tbw-space-1);
+    min-inline-size: 0;
+    padding-inline: var(--tbw-space-3);
+    border-block-end: 1px solid var(--tbw-color-border);
+    outline: none;
+  }
+
+  .tbw-grid__header-cell {
+    font-weight: var(--tbw-font-weight-semibold);
+    border-block-end: none;
+    user-select: none;
+  }
+
+  .tbw-grid__header-cell[data-sortable] {
+    cursor: pointer;
+  }
+
+  .tbw-grid__header-cell[data-sortable]:hover {
+    background: var(--tbw-color-surface-hover);
+  }
+
+  [data-align="end"] {
+    justify-content: flex-end;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .tbw-grid__header-cell[data-align="end"] {
+    flex-direction: row-reverse;
+    justify-content: flex-start;
+  }
+
+  .tbw-grid__text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .tbw-grid__sort {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    flex: none;
+    color: var(--tbw-color-accent);
+    font-size: var(--tbw-font-size-sm);
+  }
+
+  /* Inset outline: an outer one would be clipped by neighbouring cells. */
+  .tbw-grid__cell:focus-visible,
+  .tbw-grid__header-cell:focus-visible {
+    outline: var(--tbw-size-focus-ring) solid var(--tbw-color-focus);
+    outline-offset: calc(-1 * var(--tbw-size-focus-ring));
+  }
+
+  .tbw-grid__cell :focus-visible {
+    outline: var(--tbw-size-focus-ring) solid var(--tbw-color-focus);
+    outline-offset: 1px;
+  }
+
+  .tbw-grid__empty {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    padding-inline: var(--tbw-space-3);
+    color: var(--tbw-color-text-muted);
+  }
+}
