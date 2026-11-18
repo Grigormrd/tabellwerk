@@ -1,9 +1,11 @@
-import { useCallback, useMemo } from "react";
+import { useCallback, useDeferredValue, useMemo } from "react";
 import { useControllableState } from "../internal/useControllableState.ts";
+import { applyMask, filterMask } from "./filter.ts";
 import { sortPermutation, toggleSort as nextSort } from "./sort.ts";
-import type { ColumnDef, SortState } from "./types.ts";
+import type { ColumnDef, ColumnFilter, FilterState, SortState } from "./types.ts";
 
 const NO_SORT: SortState = [];
+const NO_FILTERS: FilterState = {};
 
 /** Options of {@link useDataGrid}. */
 export interface UseDataGridOptions<Row> {
@@ -17,15 +19,23 @@ export interface UseDataGridOptions<Row> {
   defaultSort?: SortState;
   /** Called with the new sort state whenever the user changes it. */
   onSortChange?: (sort: SortState) => void;
+  /** Controlled filter state. */
+  filters?: FilterState;
+  /** Initial filter state when uncontrolled. */
+  defaultFilters?: FilterState;
+  /** Called with the new filter state whenever the user changes it. */
+  onFiltersChange?: (filters: FilterState) => void;
 }
 
 /** What {@link useDataGrid} returns. */
 export interface DataGridState {
   /**
-   * Display order as indexes into `rows`: `order[0]` is the index of the row
-   * shown first. The rows themselves are never copied.
+   * Display order as indexes into `rows`, sorted and filtered: `order[0]` is
+   * the index of the row shown first. The rows themselves are never copied.
    */
   order: Uint32Array;
+  /** Number of rows before filtering. */
+  totalCount: number;
   /** Current sort state. */
   sort: SortState;
   /** Replaces the sort state. */
@@ -36,18 +46,43 @@ export interface DataGridState {
    * the existing sort instead of replacing it.
    */
   toggleSort: (columnId: string, multi?: boolean) => SortState;
+  /** Current filter state (immediately, while `order` may lag behind during typing). */
+  filters: FilterState;
+  /** Replaces the filter state. */
+  setFilters: (filters: FilterState) => void;
+  /** Sets or (with `undefined`) removes the filter of one column. */
+  setFilter: (columnId: string, filter: ColumnFilter | undefined) => void;
 }
 
 /**
- * The data side of the grid without any markup: sort state (controlled or
- * uncontrolled) and the resulting display order. `<DataGrid>` is built on it;
- * use it directly to render rows yourself.
+ * The data side of the grid without any markup: sort and filter state
+ * (controlled or uncontrolled) and the resulting display order. `<DataGrid>`
+ * is built on it; use it directly to render rows yourself.
+ *
+ * Sorting and filtering are cached separately: typing into a filter does not
+ * sort again, and sorting does not filter again. Filtering uses React's
+ * deferred rendering, so inputs stay responsive while 100,000 rows are tested.
  */
 export function useDataGrid<Row>(options: UseDataGridOptions<Row>): DataGridState {
-  const { rows, columns, sort: sortProp, defaultSort = NO_SORT, onSortChange } = options;
-  const [sort, setSort] = useControllableState(sortProp, defaultSort, onSortChange);
+  const { rows, columns } = options;
+  const [sort, setSort] = useControllableState(
+    options.sort,
+    options.defaultSort ?? NO_SORT,
+    options.onSortChange,
+  );
+  const [filters, setFilters] = useControllableState(
+    options.filters,
+    options.defaultFilters ?? NO_FILTERS,
+    options.onFiltersChange,
+  );
+  const deferredFilters = useDeferredValue(filters);
 
-  const order = useMemo(() => sortPermutation(rows, columns, sort), [rows, columns, sort]);
+  const sorted = useMemo(() => sortPermutation(rows, columns, sort), [rows, columns, sort]);
+  const mask = useMemo(
+    () => filterMask(rows, columns, deferredFilters),
+    [rows, columns, deferredFilters],
+  );
+  const order = useMemo(() => applyMask(sorted, mask), [sorted, mask]);
 
   const toggleSort = useCallback(
     (columnId: string, multi = false) => {
@@ -58,5 +93,24 @@ export function useDataGrid<Row>(options: UseDataGridOptions<Row>): DataGridStat
     [sort, setSort],
   );
 
-  return { order, sort, setSort, toggleSort };
+  const setFilter = useCallback(
+    (columnId: string, filter: ColumnFilter | undefined) => {
+      const next: Record<string, ColumnFilter> = { ...filters };
+      if (filter) next[columnId] = filter;
+      else delete next[columnId];
+      setFilters(next);
+    },
+    [filters, setFilters],
+  );
+
+  return {
+    order,
+    totalCount: rows.length,
+    sort,
+    setSort,
+    toggleSort,
+    filters,
+    setFilters,
+    setFilter,
+  };
 }

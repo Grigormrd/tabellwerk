@@ -33,10 +33,20 @@ export interface ColumnDef<Row> {
    * kept inside a cell component would move with the element, not the row.
    */
   cell?: (context: CellContext<Row>) => ReactNode;
-  /** Formats the value for default rendering. Defaults to `String(value)`, empty for null. */
-  format?: (value: CellValue) => string;
-  /** Column width in CSS pixels. Default: 160. */
+  /**
+   * Formats a non-empty value for display and for text filters. Empty values
+   * (`null`, `undefined`, `NaN`) always show as an empty cell. Defaults to
+   * `String(value)`, and ISO dates (`2026-11-18`) for `Date`.
+   */
+  format?: (value: NonNullable<CellValue>) => string;
+  /** Initial column width in CSS pixels. Default: 160. */
   width?: number;
+  /** Smallest width the user can resize the column to. Default: 48. */
+  minWidth?: number;
+  /** Largest width the user can resize the column to. Default: 800. */
+  maxWidth?: number;
+  /** Whether the user can resize the column. Default: `true`. */
+  resizable?: boolean;
   /** Text alignment; use `"end"` for numbers. Default: `"start"`. */
   align?: "start" | "end";
   /** Whether the column can be sorted. Default: `true`. */
@@ -46,7 +56,36 @@ export interface ColumnDef<Row> {
    * return a negative number, zero or a positive number, like `Array#sort`.
    */
   compare?: (a: NonNullable<CellValue>, b: NonNullable<CellValue>) => number;
+  /**
+   * Adds a filter to the column header:
+   * - `"text"`: the formatted cell text contains the input (case-insensitive)
+   * - `"number"`: the value lies within a minimum and/or maximum
+   * - `"values"`: the value is one of the checked values (for columns with few distinct values)
+   * - `"date"`: the date lies within a range (compared as UTC calendar dates)
+   *
+   * Default: no filter.
+   */
+  filter?: FilterKind;
 }
+
+/** The kinds of column filter; see `ColumnDef.filter`. */
+export type FilterKind = "text" | "number" | "values" | "date";
+
+/** The filter of one column. Which shape applies follows from `ColumnDef.filter`. */
+export type ColumnFilter =
+  | { kind: "text"; query: string }
+  | { kind: "number"; min?: number; max?: number }
+  | { kind: "values"; values: readonly string[] }
+  | { kind: "date"; from?: string; to?: string };
+
+/**
+ * Active filters by column id. A row is shown when it matches every filter.
+ * Dates in `"date"` filters are ISO calendar dates (`"2026-11-18"`).
+ */
+export type FilterState = Readonly<Record<string, ColumnFilter>>;
+
+/** Column widths in CSS pixels by column id. Missing columns use `ColumnDef.width`. */
+export type ColumnWidths = Readonly<Record<string, number>>;
 
 /** Sort direction, using the same words as `aria-sort`. */
 export type SortDirection = "ascending" | "descending";

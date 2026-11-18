@@ -54,7 +54,7 @@ test("Markdown tables in docs pages render as tables", async ({ page }) => {
   await openDocs(page, "components-datagrid--docs");
   const table = page.locator("#storybook-docs table").first();
   await expect(table).toBeVisible();
-  await expect(table.getByRole("row")).toHaveCount(12);
+  await expect(table.getByRole("row")).toHaveCount(19);
 });
 
 // Guards the checks above: without this, a broken theme switch would let the
