@@ -3,6 +3,7 @@ import { storybookTest } from "@storybook/addon-vitest/vitest-plugin";
 import react from "@vitejs/plugin-react";
 import { playwright } from "@vitest/browser-playwright";
 import { defineConfig } from "vitest/config";
+import { pointerDoubleClick, pointerDrag } from "./vitest.commands.ts";
 
 const dirname = fileURLToPath(new URL(".", import.meta.url));
 
@@ -12,6 +13,10 @@ const browser = () => ({
   headless: true,
   provider: playwright(),
   instances: [{ browser: "chromium" as const }],
+  // Desktop size: the default (414 × 896) puts wide grids partly outside the
+  // frame, where real pointer input cannot reach them.
+  viewport: { width: 1280, height: 900 },
+  commands: { pointerDrag, pointerDoubleClick },
 });
 
 export default defineConfig({

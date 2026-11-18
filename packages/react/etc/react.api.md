@@ -32,13 +32,37 @@ export interface ColumnDef<Row> {
     align?: "start" | "end";
     cell?: (context: CellContext<Row>) => ReactNode;
     compare?: (a: NonNullable<CellValue>, b: NonNullable<CellValue>) => number;
-    format?: (value: CellValue) => string;
+    filter?: FilterKind;
+    format?: (value: NonNullable<CellValue>) => string;
     getValue?: (row: Row) => CellValue;
     header: string;
     id: string;
+    maxWidth?: number;
+    minWidth?: number;
+    resizable?: boolean;
     sortable?: boolean;
     width?: number;
 }
+
+// @public
+export type ColumnFilter = {
+    kind: "text";
+    query: string;
+} | {
+    kind: "number";
+    min?: number;
+    max?: number;
+} | {
+    kind: "values";
+    values: readonly string[];
+} | {
+    kind: "date";
+    from?: string;
+    to?: string;
+};
+
+// @public
+export type ColumnWidths = Readonly<Record<string, number>>;
 
 // @public
 export function DataGrid<Row>(props: DataGridProps<Row>): JSX.Element;
@@ -46,13 +70,37 @@ export function DataGrid<Row>(props: DataGridProps<Row>): JSX.Element;
 // @public
 export interface DataGridMessages {
     empty: string;
+    filterButton: (header: string) => string;
+    filterDialog: (header: string) => string;
+    filteredSuffix: string;
+    filterLabels: {
+        contains: string;
+        min: string;
+        max: string;
+        from: string;
+        to: string;
+        values: string;
+        selectAll: string;
+        selectNone: string;
+        clear: string;
+        close: string;
+    };
+    filterResult: (count: number, total: number) => string;
+    headerHint: (capabilities: HeaderCapabilities) => string;
+    noMatches: string;
+    resizeHandle: (header: string) => string;
     sorted: (sort: readonly {
         header: string;
         direction: SortDirection;
     }[]) => string;
-    sortHint: string;
     sortPosition: (position: number, direction: SortDirection) => string;
+    widthText: (pixels: number) => string;
 }
+
+// @public
+export type DataGridMessagesInput = Partial<Omit<DataGridMessages, "filterLabels">> & {
+    filterLabels?: Partial<DataGridMessages["filterLabels"]>;
+};
 
 // @public
 export interface DataGridProps<Row> {
@@ -60,8 +108,14 @@ export interface DataGridProps<Row> {
     "aria-labelledby"?: string;
     className?: string;
     columns: readonly ColumnDef<Row>[];
+    columnWidths?: ColumnWidths;
+    defaultColumnWidths?: ColumnWidths;
+    defaultFilters?: FilterState;
     defaultSort?: SortState;
-    messages?: Partial<DataGridMessages>;
+    filters?: FilterState;
+    messages?: DataGridMessagesInput;
+    onColumnWidthsChange?: (widths: ColumnWidths) => void;
+    onFiltersChange?: (filters: FilterState) => void;
     onSortChange?: (sort: SortState) => void;
     overscan?: number;
     rowHeight?: number;
@@ -72,14 +126,31 @@ export interface DataGridProps<Row> {
 
 // @public
 export interface DataGridState {
+    filters: FilterState;
     order: Uint32Array;
+    setFilter: (columnId: string, filter: ColumnFilter | undefined) => void;
+    setFilters: (filters: FilterState) => void;
     setSort: (sort: SortState) => void;
     sort: SortState;
     toggleSort: (columnId: string, multi?: boolean) => SortState;
+    totalCount: number;
 }
 
 // @public
 export const defaultDataGridMessages: DataGridMessages;
+
+// @public
+export type FilterKind = "text" | "number" | "values" | "date";
+
+// @public
+export type FilterState = Readonly<Record<string, ColumnFilter>>;
+
+// @public
+export interface HeaderCapabilities {
+    filterable: boolean;
+    resizable: boolean;
+    sortable: boolean;
+}
 
 // @public
 export function LiveAnnouncer(input: LiveAnnouncerProps): JSX.Element;
@@ -121,7 +192,10 @@ export function useDataGrid<Row>(options: UseDataGridOptions<Row>): DataGridStat
 // @public
 export interface UseDataGridOptions<Row> {
     columns: readonly ColumnDef<Row>[];
+    defaultFilters?: FilterState;
     defaultSort?: SortState;
+    filters?: FilterState;
+    onFiltersChange?: (filters: FilterState) => void;
     onSortChange?: (sort: SortState) => void;
     rows: readonly Row[];
     sort?: SortState;
