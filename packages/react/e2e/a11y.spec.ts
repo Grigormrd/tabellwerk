@@ -1,6 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
-import { loadStories, openStory, type ColorScheme } from "./stories.ts";
+import { loadDocsPages, loadStories, openDocs, openStory, type ColorScheme } from "./stories.ts";
 
 const WCAG_TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"];
 
@@ -29,6 +29,33 @@ for (const story of loadStories()) {
     });
   }
 }
+
+// The documentation pages are part of the product too: prose, tables and the
+// stories embedded in them.
+for (const docs of loadDocsPages()) {
+  for (const colorScheme of ["light", "dark"] as const) {
+    test(`${docs.title} / docs page (${colorScheme})`, async ({ page }) => {
+      await page.emulateMedia({ colorScheme });
+      await openDocs(page, docs.id);
+      const results = await new AxeBuilder({ page })
+        .include("#storybook-docs")
+        .withTags(WCAG_TAGS)
+        .analyze();
+      expect(
+        results.violations.map(
+          (v) => `${v.id}: ${v.nodes.map((n) => n.target.join(" ")).join(", ")}`,
+        ),
+      ).toEqual([]);
+    });
+  }
+}
+
+test("Markdown tables in docs pages render as tables", async ({ page }) => {
+  await openDocs(page, "components-datagrid--docs");
+  const table = page.locator("#storybook-docs table").first();
+  await expect(table).toBeVisible();
+  await expect(table.getByRole("row")).toHaveCount(12);
+});
 
 // Guards the checks above: without this, a broken theme switch would let the
 // "dark" runs silently test the light theme a second time.

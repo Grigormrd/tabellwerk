@@ -9,20 +9,39 @@ interface IndexEntry {
   tags?: string[];
 }
 
-/** Every story of the static Storybook build, read from its index.json. */
-export function loadStories(): IndexEntry[] {
+function loadIndex(): IndexEntry[] {
   const url = new URL("../storybook-static/index.json", import.meta.url);
-  let index: { entries: Record<string, IndexEntry> };
   try {
-    index = JSON.parse(readFileSync(url, "utf8"));
+    return Object.values(
+      (JSON.parse(readFileSync(url, "utf8")) as { entries: Record<string, IndexEntry> }).entries,
+    );
   } catch {
     throw new Error("storybook-static/index.json is missing. Run `pnpm build:docs` first.");
   }
-  const stories = Object.values(index.entries).filter(
+}
+
+/** Every story of the static Storybook build, read from its index.json. */
+export function loadStories(): IndexEntry[] {
+  const stories = loadIndex().filter(
     (entry) => entry.type === "story" && !entry.tags?.includes("skip-e2e"),
   );
   if (stories.length === 0) throw new Error("The Storybook build contains no stories.");
   return stories;
+}
+
+/** Every documentation page (MDX and generated) of the static build. */
+export function loadDocsPages(): IndexEntry[] {
+  return loadIndex().filter((entry) => entry.type === "docs");
+}
+
+/** Opens a documentation page on its own and waits until its stories have rendered. */
+export async function openDocs(page: Page, id: string): Promise<void> {
+  await page.goto(
+    `/iframe.html?id=${encodeURIComponent(id)}&viewMode=docs&globals=a11y.manual:!true`,
+  );
+  await page.locator("#storybook-docs h1").first().waitFor();
+  await page.waitForLoadState("networkidle");
+  await page.evaluate(() => document.fonts.ready);
 }
 
 export const COLOR_SCHEMES = ["light", "dark"] as const;
