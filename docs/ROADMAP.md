@@ -29,7 +29,7 @@ Done when:
 
 - [x] Every key in the documented keyboard table has an interaction test
 - [x] axe passes in light, dark and forced colours
-- [ ] Performance budgets measured, documented with the measuring conditions and enforced in CI
+- [x] Performance budgets measured, documented with the measuring conditions and enforced in CI
 - [x] Comparison with TanStack Virtual recorded in an ADR
 - [ ] Storybook documentation deployed (after approval)
 

@@ -108,16 +108,17 @@ The reasoning behind these choices is recorded in [Architecture Decision Records
 ## Performance
 
 Measured on the production Storybook build with 100,000 synthetic rows × 8 columns, Chromium
-158 (headless), CPU throttled 4×, Intel Core i5-12400F, median of 5 runs, 2026-11-18
+158 (headless), CPU throttled 4×, median of 5 runs, on 2026-11-18: locally on an Intel Core
+i5-12400F and in CI on a GitHub-hosted `ubuntu-latest` runner
 ([method](docs/adr/0004-own-virtualiser.md#measurements)):
 
-| Interaction                                             | Measured | Budget in CI |
-| ------------------------------------------------------- | -------: | -----------: |
-| Mount the grid (click → next paint)                     |   120 ms |       200 ms |
-| Sort by a number column                                 |    80 ms |       200 ms |
-| Sort by a text column                                   |    72 ms |       200 ms |
-| Keyboard step (ArrowDown, PageDown)                     |    32 ms |       100 ms |
-| Long frames (> 50 ms) while jumping through 10,000 rows |        4 |           20 |
+| Interaction                                             |  Local |     CI | Budget in CI |
+| ------------------------------------------------------- | -----: | -----: | -----------: |
+| Mount the grid (click → next paint)                     | 120 ms | 112 ms |       200 ms |
+| Sort by a number column                                 |  80 ms | 104 ms |       200 ms |
+| Sort by a text column                                   |  72 ms |  88 ms |       200 ms |
+| Keyboard step (ArrowDown, PageDown)                     |  32 ms |  40 ms |       100 ms |
+| Long frames (> 50 ms) while jumping through 10,000 rows |      4 |      4 |           20 |
 
 Interaction times come from the Event Timing API, the data INP is computed from. CI runs the same
 measurement on every pull request and fails when a median exceeds its budget. Bundle size of the

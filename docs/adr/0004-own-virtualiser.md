@@ -56,6 +56,11 @@ mount time and buys re-rendering exactly two cells when focus moves; the referen
 focus model at all. The decision is therefore not about speed but about control: the focus, keyboard and accessibility requirements above sit directly in
 the virtualiser, and the library ships without runtime dependencies.
 
+The same measurement in CI (GitHub-hosted `ubuntu-latest` runner, same settings, run on PR 4,
+2026-11-18): mount 112 ms (TanStack Virtual 112 ms), 4 long frames (4), worst frame 62 ms
+(58 ms), sort by number 104 ms, by text 88 ms, keyboard step 40 ms. The runs on the CI machine
+varied much less than locally.
+
 ## Budgets
 
 `e2e/perf-budgets.json` holds the limits CI enforces on the median of 5 runs: mount, sorting and
