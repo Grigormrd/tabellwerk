@@ -12,6 +12,10 @@
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
+    "./data-grid": {
+      "types": "./dist/data-grid.d.ts",
+      "default": "./dist/data-grid.js"
+    },
     "./live-announcer": {
       "types": "./dist/live-announcer.d.ts",
       "default": "./dist/live-announcer.js"
@@ -55,7 +59,8 @@
     "e2e": "playwright test --project a11y",
     "visual": "playwright test --project visual",
     "package-check": "publint --strict && attw --pack . --profile esm-only --exclude-entrypoints ./styles.css && size-limit && api-extractor run",
-    "api:update": "api-extractor run --local"
+    "api:update": "api-extractor run --local",
+    "perf": "playwright test --project perf --workers=1"
   },
   "dependencies": {
     "@tabellwerk/tokens": "workspace:^"
@@ -74,6 +79,7 @@
     "@storybook/addon-docs": "^10.6.7",
     "@storybook/addon-vitest": "^10.6.7",
     "@storybook/react-vite": "^10.6.7",
+    "@tanstack/react-virtual": "^3.14.26",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.3.0",

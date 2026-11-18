@@ -21,7 +21,8 @@
     "visual:update": "node scripts/visual-in-docker.mjs",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "changeset": "changeset"
+    "changeset": "changeset",
+    "perf": "pnpm --filter @tabellwerk/react perf"
   },
   "devDependencies": {
     "@changesets/changelog-github": "^1.0.1",

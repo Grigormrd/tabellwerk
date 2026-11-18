@@ -1,0 +1,12 @@
+{
+  "cpuThrottling": 4,
+  "runs": 5,
+  "budgets": {
+    "tabellwerk.mount": 200,
+    "tabellwerk.sortNumbers": 200,
+    "tabellwerk.sortStrings": 200,
+    "tabellwerk.keyboardStep": 100,
+    "tabellwerk.scrollLongFrames": 20,
+    "tabellwerk.scrollWorstFrame": 150
+  }
+}

@@ -17,7 +17,7 @@ Done when:
 - [x] `pnpm e2e` passes: axe on every story in light, dark and forced colours
 - [x] Visual baselines recorded in the Playwright Docker image and compared there
 - [x] `npm pack --dry-run` contains only `dist`, `README.md`, `LICENSE` and `package.json`
-- [ ] CI passes on the pull request
+- [x] CI passes on the pull request (#1)
 
 ## Phase 1: Data grid: rendering, keyboard, sorting
 
@@ -27,10 +27,10 @@ navigation, single and multi-column sorting with announcements, performance harn
 
 Done when:
 
-- [ ] Every key in the documented keyboard table has an interaction test
-- [ ] axe passes in light, dark and forced colours
-- [ ] Performance budgets measured, documented with the measuring conditions and enforced in CI
-- [ ] Comparison with TanStack Virtual recorded in an ADR
+- [x] Every key in the documented keyboard table has an interaction test
+- [x] axe passes in light, dark and forced colours
+- [x] Performance budgets measured, documented with the measuring conditions and enforced in CI
+- [x] Comparison with TanStack Virtual recorded in an ADR
 - [ ] Storybook documentation deployed (after approval)
 
 ## Phase 2: Data grid: filtering and column resizing

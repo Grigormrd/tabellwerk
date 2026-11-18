@@ -18,6 +18,70 @@ export interface AnnounceOptions {
 }
 
 // @public
+export interface CellContext<Row> {
+    row: Row;
+    rowIndex: number;
+    value: CellValue;
+}
+
+// @public
+export type CellValue = string | number | boolean | Date | null | undefined;
+
+// @public
+export interface ColumnDef<Row> {
+    align?: "start" | "end";
+    cell?: (context: CellContext<Row>) => ReactNode;
+    compare?: (a: NonNullable<CellValue>, b: NonNullable<CellValue>) => number;
+    format?: (value: CellValue) => string;
+    getValue?: (row: Row) => CellValue;
+    header: string;
+    id: string;
+    sortable?: boolean;
+    width?: number;
+}
+
+// @public
+export function DataGrid<Row>(props: DataGridProps<Row>): JSX.Element;
+
+// @public
+export interface DataGridMessages {
+    empty: string;
+    sorted: (sort: readonly {
+        header: string;
+        direction: SortDirection;
+    }[]) => string;
+    sortHint: string;
+    sortPosition: (position: number, direction: SortDirection) => string;
+}
+
+// @public
+export interface DataGridProps<Row> {
+    "aria-label"?: string;
+    "aria-labelledby"?: string;
+    className?: string;
+    columns: readonly ColumnDef<Row>[];
+    defaultSort?: SortState;
+    messages?: Partial<DataGridMessages>;
+    onSortChange?: (sort: SortState) => void;
+    overscan?: number;
+    rowHeight?: number;
+    rows: readonly Row[];
+    sort?: SortState;
+    style?: CSSProperties;
+}
+
+// @public
+export interface DataGridState {
+    order: Uint32Array;
+    setSort: (sort: SortState) => void;
+    sort: SortState;
+    toggleSort: (columnId: string, multi?: boolean) => SortState;
+}
+
+// @public
+export const defaultDataGridMessages: DataGridMessages;
+
+// @public
 export function LiveAnnouncer(input: LiveAnnouncerProps): JSX.Element;
 
 // @public
@@ -31,7 +95,37 @@ export interface LiveAnnouncerProps {
 export type Politeness = "polite" | "assertive";
 
 // @public
+export interface SortDescriptor {
+    columnId: string;
+    direction: SortDirection;
+}
+
+// @public
+export type SortDirection = "ascending" | "descending";
+
+// @public
+export function sortPermutation<Row>(rows: readonly Row[], columns: readonly ColumnDef<Row>[], sort: SortState, collator?: Intl.Collator): Uint32Array;
+
+// @public
+export type SortState = readonly SortDescriptor[];
+
+// @public
+export function toggleSort(state: SortState, columnId: string, multi?: boolean): SortState;
+
+// @public
 export function useAnnouncer(): Announce;
+
+// @public
+export function useDataGrid<Row>(options: UseDataGridOptions<Row>): DataGridState;
+
+// @public
+export interface UseDataGridOptions<Row> {
+    columns: readonly ColumnDef<Row>[];
+    defaultSort?: SortState;
+    onSortChange?: (sort: SortState) => void;
+    rows: readonly Row[];
+    sort?: SortState;
+}
 
 // @public
 export function VisuallyHidden(input: VisuallyHiddenProps): JSX.Element;

@@ -36,6 +36,9 @@ export default defineConfig({
         test: {
           name: "browser",
           include: ["src/**/*.browser.test.{ts,tsx}"],
+          // Real key presses go to whichever test frame has focus, so test
+          // files must not run side by side in the same browser.
+          fileParallelism: false,
           setupFiles: [".storybook/vitest.setup.ts"],
           browser: browser(),
         },

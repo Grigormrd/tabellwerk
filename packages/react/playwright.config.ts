@@ -23,6 +23,7 @@ export default defineConfig({
   projects: [
     { name: "a11y", testMatch: "a11y.spec.ts" },
     { name: "visual", testMatch: "visual.spec.ts" },
+    { name: "perf", testMatch: "perf.spec.ts", fullyParallel: false, retries: 0 },
   ],
   webServer: {
     command: `node ../../scripts/serve-static.mjs storybook-static ${PORT}`,

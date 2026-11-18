@@ -97,3 +97,33 @@ jobs:
             packages/react/playwright-report
             packages/react/test-results
           retention-days: 7
+
+  perf:
+    name: Performance budgets (100,000 rows, CPU 4× throttled)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm --filter @tabellwerk/react exec playwright install --with-deps chromium
+
+      - run: pnpm build:docs
+
+      - run: pnpm perf
+
+      # The measured values, also when the budgets pass, for the README and ADR 4.
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: perf-results
+          path: packages/react/test-results/perf.json
+          retention-days: 30

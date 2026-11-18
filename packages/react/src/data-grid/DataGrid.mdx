@@ -1,0 +1,116 @@
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+import * as DataGridStories from "./DataGrid.stories.tsx";
+
+<Meta of={DataGridStories} />
+
+# DataGrid
+
+An accessible data grid following the
+[WAI-ARIA grid pattern](https://www.w3.org/WAI/ARIA/apg/patterns/grid/). It renders only the rows in
+view, so 100,000 rows behave like 100.
+
+<Canvas of={DataGridStories.HundredThousandRows} />
+
+```tsx
+import { DataGrid, type ColumnDef } from "@tabellwerk/react";
+import "@tabellwerk/react/styles.css";
+
+interface Price {
+  time: Date;
+  price: number;
+}
+
+// Define columns outside the component (or memoise them): a new array on
+// every render re-sorts the rows.
+const columns: ColumnDef<Price>[] = [
+  { id: "time", header: "Time" },
+  { id: "price", header: "Price €/MWh", align: "end", format: (v) => (v as number).toFixed(2) },
+];
+
+export function Prices({ rows }: { rows: Price[] }) {
+  return (
+    <DataGrid aria-label="Day-ahead prices" rows={rows} columns={columns} style={{ height: 480 }} />
+  );
+}
+```
+
+## Keyboard
+
+The grid is a single tab stop. Tab moves focus into the grid, to the cell that was active last
+(the first header cell at the start), and Tab again moves on to the next element on the page.
+
+| Key                                              | Action                                                                       |
+| ------------------------------------------------ | ---------------------------------------------------------------------------- |
+| <kbd>→</kbd> / <kbd>←</kbd>                      | Next / previous cell in the row; stops at the edge                           |
+| <kbd>↓</kbd> / <kbd>↑</kbd>                      | Cell below / above; from the first data row, <kbd>↑</kbd> reaches the header |
+| <kbd>Home</kbd> / <kbd>End</kbd>                 | First / last cell in the row                                                 |
+| <kbd>Ctrl</kbd>+<kbd>Home</kbd>                  | First cell of the grid (header), scrolled to the top                         |
+| <kbd>Ctrl</kbd>+<kbd>End</kbd>                   | Last cell of the last row                                                    |
+| <kbd>Page Down</kbd> / <kbd>Page Up</kbd>        | One screen of rows down / up, keeping one row of overlap                     |
+| <kbd>Enter</kbd> or <kbd>Space</kbd> on a header | Sort: ascending → descending → not sorted                                    |
+| <kbd>Shift</kbd>+<kbd>Enter</kbd> on a header    | Add the column to the sort (or change its direction)                         |
+| <kbd>Enter</kbd> or <kbd>F2</kbd> on a cell      | Move into interactive content (links, buttons) in the cell                   |
+| <kbd>Tab</kbd> inside a cell                     | Next interactive element in the same cell (cycles)                           |
+| <kbd>Escape</kbd> inside a cell                  | Back to the cell                                                             |
+
+On macOS, <kbd>Cmd</kbd> works in place of <kbd>Ctrl</kbd>. Every row of this table has an
+interaction test that presses the real key in a browser.
+
+## Screen readers
+
+- The grid announces its full size (`aria-rowcount`, `aria-colcount`), and every rendered row and
+  cell carries its real position (`aria-rowindex`, `aria-colindex`), so "row 54,321 of 100,001" is
+  correct even though only about 30 rows exist in the DOM.
+- Sortable headers are described as such ("Press Enter to sort…"). The primary sort column has
+  `aria-sort`; further sort columns say their position in their name ("Price, sort 2, ascending").
+- After every sort change, a polite live region announces the new order, for example "Sorted by
+  Zone, ascending, then by Price, descending".
+- The focused row stays in the DOM when it is scrolled out of view, so focus is never lost.
+
+## Sorting
+
+Sorting works on an index permutation; `rows` is never copied or mutated. The sort is stable,
+case-insensitive with natural number order for strings ("Biomass 9" before "Biomass 10"), and
+empty values (`null`, `undefined`, `NaN`) are always last. Use `compare` on a column for custom
+order, `sortable: false` to switch it off, and `sort` with `onSortChange` to control the state.
+
+<Canvas of={DataGridStories.MultiColumnSort} />
+
+## Interactive cells
+
+Content from `cell` renderers is taken out of the tab order, because the grid has a single tab
+stop. Enter or F2 moves into it.
+
+<Canvas of={DataGridStories.InteractiveCells} />
+
+Cell renderers must render from their arguments only: row elements are reused by position, so
+after sorting or scrolling the same element shows a different row.
+
+## Translation
+
+Every text the grid shows or announces can be replaced with the `messages` prop:
+
+```tsx
+<DataGrid
+  messages={{
+    empty: "Keine Zeilen",
+    sortHint: "Eingabetaste sortiert. Umschalt+Eingabe fügt die Spalte zur Sortierung hinzu.",
+    sorted: (sort) =>
+      sort.length === 0
+        ? "Nicht sortiert"
+        : `Sortiert nach ${sort.map((s) => `${s.header}, ${s.direction === "ascending" ? "aufsteigend" : "absteigend"}`).join(", dann nach ")}`,
+  }}
+  /* … */
+/>
+```
+
+## Props
+
+<ArgTypes of={DataGridStories} />
+
+## Limits
+
+- Every row has the same height (`rowHeight`, default 36 px).
+- Browsers cap the height of an element at a few million pixels; with 36 px rows that is several
+  hundred thousand rows. Beyond that the grid would need scroll scaling, which it does not do.
+- Columns are not virtualised; the grid is tested with up to 50 columns.
