@@ -31,7 +31,7 @@ Done when:
 - [x] axe passes in light, dark and forced colours
 - [x] Performance budgets measured, documented with the measuring conditions and enforced in CI
 - [x] Comparison with TanStack Virtual recorded in an ADR
-- [ ] Storybook documentation deployed (after approval)
+- [x] Storybook documentation deployed (after approval): https://tabellwerk.vercel.app
 
 ## Phase 2: Data grid: filtering and column resizing
 

@@ -5,6 +5,10 @@ sorting, filtering and column resizing by keyboard and pointer, plus the two wid
 get wrong: a combobox with autocomplete and a date picker. Framework-neutral design tokens,
 light/dark/forced-colours themes, and every claim backed by a test.
 
+**Documentation:** [tabellwerk.vercel.app](https://tabellwerk.vercel.app) (Storybook: component docs,
+keyboard tables, all stories in light and dark; try the
+[100,000-row grid](https://tabellwerk.vercel.app/?path=/story/components-datagrid--hundred-thousand-rows))
+
 > **Status: under construction.** The data grid renders, navigates and sorts 100,000 rows (Phase 1).
 > Filtering and column resizing, the combobox and the date picker follow in the phases of the
 > [roadmap](docs/ROADMAP.md). Nothing is published to npm yet.
@@ -161,6 +165,13 @@ pnpm storybook        # http://localhost:6006
 | `pnpm perf`          | Performance measurements and budgets (needs `build:docs`)                           |
 | `pnpm changeset`     | Describe a change for the changelog                                                 |
 | `pnpm format`        | Format the codebase with Prettier                                                   |
+
+## Deployment
+
+The documentation site is the static Storybook build on Vercel (project `tabellwerk`; build
+command `pnpm build:docs`, output `packages/react/storybook-static`). Every push to `main` deploys
+to [tabellwerk.vercel.app](https://tabellwerk.vercel.app); pull requests get preview deployments.
+Nothing is published to npm yet.
 
 ## Testing
 
