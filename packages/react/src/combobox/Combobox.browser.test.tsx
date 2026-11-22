@@ -373,9 +373,28 @@ describe("Combobox in forms", () => {
 
   it("form reset restores the default value", async () => {
     const screen = await render(<Form onSubmit={() => {}} />);
-    await userEvent.keyboard("{Tab}{ArrowDown}{ArrowUp}{Enter}");
+    // TEMPORARY trace for a Firefox-only failure; removed once understood.
+    const trace: string[] = [];
+    const snap = (label: string) =>
+      trace.push(
+        `${label}: value=${input().value} attr=${input().getAttribute("value")} active=${document.activeElement?.tagName}/${document.activeElement?.getAttribute("role") ?? ""}`,
+      );
+    snap("start");
+    input().form!.addEventListener("reset", () => snap("reset event"));
+    await userEvent.keyboard("{Tab}");
+    snap("after Tab");
+    await userEvent.keyboard("{ArrowDown}");
+    snap("after ArrowDown");
+    await userEvent.keyboard("{ArrowUp}");
+    snap("after ArrowUp");
+    await userEvent.keyboard("{Enter}");
+    snap("after Enter");
     expect(input().value).not.toBe("Netherlands");
     await screen.getByRole("button", { name: "Reset" }).click();
+    snap("after click");
+    await new Promise((r) => setTimeout(r, 200));
+    snap("after 200 ms");
+    console.log(`RESET-TRACE\n${trace.join("\n")}`);
     await expect.poll(() => input().value).toBe("Netherlands");
   });
 });
