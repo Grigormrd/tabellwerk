@@ -153,6 +153,73 @@ for (let run = 0; run < RUNS; run++) {
   });
 }
 
+for (let run = 0; run < RUNS; run++) {
+  test(`tabellwerk: filter and resize on 100,000 rows (run ${run + 1})`, async ({ page }) => {
+    await open(page, "benchmarks-datagrid--tabellwerk");
+    await mount(page);
+    const grid = page.getByRole("grid");
+
+    // Typing into the text filter: every key press tests 100,000 rows.
+    await page.getByRole("button", { name: "Filter #" }).click();
+    await takeInteraction(page, ["pointerdown", "pointerup", "click"]);
+    let worstKey = 0;
+    let worstResult = 0;
+    for (const key of "1234") {
+      // Event Timing ends at the next paint, which shows the typed character.
+      // The rows are filtered in a deferred render after that, so also time
+      // the key press until the grid's row count has changed.
+      await page.evaluate(() => {
+        const w = window as unknown as { __filterDone: Promise<number> };
+        const grid = document.querySelector('[role="grid"]')!;
+        const before = grid.getAttribute("aria-rowcount");
+        w.__filterDone = new Promise((resolve) => {
+          let start = 0;
+          document.addEventListener("keydown", () => (start = performance.now()), {
+            capture: true,
+            once: true,
+          });
+          new MutationObserver((_, observer) => {
+            if (grid.getAttribute("aria-rowcount") === before) return;
+            observer.disconnect();
+            requestAnimationFrame(() => resolve(performance.now() - start));
+          }).observe(grid, { attributes: true, attributeFilter: ["aria-rowcount"] });
+        });
+      });
+      await page.keyboard.press(key);
+      worstResult = Math.max(
+        worstResult,
+        await page.evaluate(
+          () => (window as unknown as { __filterDone: Promise<number> }).__filterDone,
+        ),
+      );
+      worstKey = Math.max(worstKey, await takeInteraction(page, ["keydown", "keyup", "keypress"]));
+    }
+    // The 20 ids from 1 to 100,000 that contain "1234", plus the header row.
+    await expect(grid).toHaveAttribute("aria-rowcount", "21");
+    record("tabellwerk.filterKeystroke", worstKey);
+    record("tabellwerk.filterResult", worstResult);
+    await page.keyboard.press("Escape");
+
+    // Dragging a column edge 200 px in 20 steps: long frames during the drag.
+    const handle = page.getByRole("separator", { name: "Resize Zone" });
+    const box = (await handle.boundingBox())!;
+    await page.evaluate(() => ((window as unknown as { __loaf: unknown[] }).__loaf = []));
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(box.x + box.width / 2 + 200, box.y + box.height / 2, { steps: 20 });
+    await page.mouse.up();
+    await expect(handle).toHaveAttribute("aria-valuenow", "320");
+    await page.waitForTimeout(300);
+    record(
+      "tabellwerk.resizeWorstFrame",
+      await page.evaluate(() => {
+        const frames = (window as unknown as { __loaf: PerformanceEntry[] }).__loaf;
+        return frames.length ? Math.max(...frames.map((f) => f.duration)) : 0;
+      }),
+    );
+  });
+}
+
 test.afterAll(() => {
   const summary = Object.fromEntries(
     Object.entries(results).map(([name, values]) => [name, { median: median(values), values }]),

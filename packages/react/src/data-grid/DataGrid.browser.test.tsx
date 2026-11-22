@@ -321,7 +321,9 @@ describe("DataGrid sorting", () => {
     const screen = await render(<Harness />);
     await expect
       .element(screen.getByRole("columnheader", { name: /Price/ }))
-      .toHaveAccessibleDescription("Press Enter to sort. Shift+Enter adds the column to the sort.");
+      .toHaveAccessibleDescription(
+        "Press Enter to sort, Shift+Enter to add the column to the sort. Alt+Down Arrow opens the filter. F2 moves to the column controls.",
+      );
   });
 
   it("supports controlled sort state", async () => {

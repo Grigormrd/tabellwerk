@@ -9,8 +9,8 @@ light/dark/forced-colours themes, and every claim backed by a test.
 keyboard tables, all stories in light and dark; try the
 [100,000-row grid](https://tabellwerk.vercel.app/?path=/story/components-datagrid--hundred-thousand-rows))
 
-> **Status: under construction.** The data grid renders, navigates and sorts 100,000 rows (Phase 1).
-> Filtering and column resizing, the combobox and the date picker follow in the phases of the
+> **Status: under construction.** The data grid renders, navigates, sorts, filters and resizes
+> 100,000 rows (Phases 1 and 2). The combobox and the date picker follow in the phases of the
 > [roadmap](docs/ROADMAP.md). Nothing is published to npm yet.
 
 ## Packages
@@ -31,7 +31,12 @@ Available today:
     buttons inside cells, Escape back; the focused row stays mounted when scrolled away
   - stable single and multi-column sorting by click, Enter or Space, announced to screen readers;
     radix sort over an index permutation, `rows` is never copied
-  - controlled or uncontrolled sort state, translatable texts, `useDataGrid()` for custom markup
+  - per-column filters (text, number range, values, date range) in a header dialog, applied while
+    typing; the number of matching rows is announced
+  - column resizing by dragging the header edge (mouse, pen, touch) or with the keyboard, and fit
+    to content; a width change renders no row
+  - controlled or uncontrolled sort, filter and width state, translatable texts, `useDataGrid()`
+    for custom markup
 - **`LiveAnnouncer`** with `useAnnouncer()`: polite and assertive screen reader announcements
 - **`VisuallyHidden`**: text for assistive technology only
 
@@ -40,8 +45,8 @@ import { DataGrid, type ColumnDef } from "@tabellwerk/react";
 import "@tabellwerk/react/styles.css";
 
 const columns: ColumnDef<Price>[] = [
-  { id: "time", header: "Time" },
-  { id: "price", header: "Price €/MWh", align: "end" },
+  { id: "time", header: "Time", filter: "date" },
+  { id: "price", header: "Price €/MWh", align: "end", filter: "number" },
 ];
 
 <DataGrid aria-label="Day-ahead prices" rows={rows} columns={columns} style={{ height: 480 }} />;
@@ -49,7 +54,6 @@ const columns: ColumnDef<Price>[] = [
 
 Planned:
 
-- **Data grid:** per-column filters and column resizing by keyboard, pointer and touch
 - **Combobox** with list and inline autocomplete, async options and correct IME handling
 - **Date picker** dialog with a keyboard-operable calendar grid and locale-aware week start
 - Controlled and uncontrolled state everywhere; hooks for custom markup, components for the rest
@@ -107,26 +111,34 @@ The reasoning behind these choices is recorded in [Architecture Decision Records
 [testing strategy](docs/adr/0003-testing-strategy.md),
 [own virtualiser](docs/adr/0004-own-virtualiser.md),
 [sorting with radix sort](docs/adr/0005-sorting-with-rank-permutations.md),
-[focus and keyboard model](docs/adr/0006-grid-focus-and-keyboard-model.md).
+[focus and keyboard model](docs/adr/0006-grid-focus-and-keyboard-model.md),
+[header controls, filtering and resizing](docs/adr/0007-header-controls-filtering-and-resizing.md).
 
 ## Performance
 
 Measured on the production Storybook build with 100,000 synthetic rows × 8 columns, Chromium
 158 (headless), CPU throttled 4×, median of 5 runs, on 2026-11-18: locally on an Intel Core
-i5-12400F and in CI on a GitHub-hosted `ubuntu-latest` runner
+i5-12400F and in CI on a GitHub-hosted `ubuntu-latest` runner (run on PR 6)
 ([method](docs/adr/0004-own-virtualiser.md#measurements)):
 
-| Interaction                                             |  Local |     CI | Budget in CI |
-| ------------------------------------------------------- | -----: | -----: | -----------: |
-| Mount the grid (click → next paint)                     | 120 ms | 112 ms |       200 ms |
-| Sort by a number column                                 |  80 ms | 104 ms |       200 ms |
-| Sort by a text column                                   |  72 ms |  88 ms |       200 ms |
-| Keyboard step (ArrowDown, PageDown)                     |  32 ms |  40 ms |       100 ms |
-| Long frames (> 50 ms) while jumping through 10,000 rows |      4 |      4 |           20 |
+| Interaction                                                 |   Local |      CI | Budget in CI |
+| ----------------------------------------------------------- | ------: | ------: | -----------: |
+| Mount the grid (click → next paint)                         |  128 ms |   80 ms |       200 ms |
+| Sort by a number column                                     |   72 ms |   80 ms |       200 ms |
+| Sort by a text column                                       |   64 ms |   64 ms |       200 ms |
+| Keyboard step (ArrowDown, PageDown)                         |   32 ms |   32 ms |       100 ms |
+| Key press in a text filter (until the character is painted) |   24 ms |   16 ms |       100 ms |
+| Key press in a text filter (until the filtered rows show)   |   74 ms |   68 ms |       200 ms |
+| Long frames (> 50 ms) while jumping through 10,000 rows     |       2 |       0 |           20 |
+| Worst frame while dragging a column edge 200 px             | < 50 ms | < 50 ms |       100 ms |
 
-Interaction times come from the Event Timing API, the data INP is computed from. CI runs the same
-measurement on every pull request and fails when a median exceeds its budget. Bundle size of the
-grid: 4.0 kB (minified and brotli-compressed, checked by size-limit).
+GitHub-hosted runners vary from run to run: on PR 4 the same runner type needed 112 ms to mount
+the grid, on PR 6 80 ms. The budgets are set so that both pass with room to spare.
+
+Interaction times come from the Event Timing API, the data INP is computed from; frames come from
+the Long Animation Frames API, which reports only frames over 50 ms. CI runs the same measurement
+on every pull request and fails when a median exceeds its budget. Bundle size of the grid: 7.3 kB
+(minified and brotli-compressed, checked by size-limit).
 
 ## Project structure
 
@@ -215,6 +227,22 @@ Things that took longer than expected so far, and what they changed.
 - **Measuring on a laptop that sleeps.** A measurement run that overlapped with the machine going
   to sleep reported a five-hour test and nonsense frame times, and one run overlapped with another
   test run. Both were thrown away; the numbers above come from runs with nothing else running.
+- **Real pointer input missed the resize handle.** Synthetic `PointerEvent`s cannot be used for
+  drag tests, because `setPointerCapture()` needs a real active pointer. The tests send mouse and
+  touch input from the Playwright side instead, and at first every drag did nothing: the test
+  frame was 414 pixels wide by default, so the handle at x ≈ 710 was outside it and the press
+  landed next to the frame. The browser tests now run at 1280 × 900.
+- **"Fit to content" measured the cell, not the content.** The first version took the full text
+  width plus "everything else in the cell", which for a wide column with short text is the cell
+  itself: the column stayed 800 px wide. It now adds up the padding, the gaps and the widths of
+  the flex children, using the scroll width for truncated text.
+- **A popover that reopened itself.** With `popover="auto"`, a click on the filter button first
+  closed the open dialog (light dismiss on pointer down) and then the click opened it again. The
+  dialog uses `popover="manual"` and its own outside-press handling, which ignores its header.
+  ([ADR 7](docs/adr/0007-header-controls-filtering-and-resizing.md))
+- **`format` was called with `null`.** A filter test crashed in `toFixed()`, because the grid
+  passed empty values to the column's `format`. Empty values now always render as empty cells and
+  `format` receives only non-empty values, which its type says.
 
 ## License
 

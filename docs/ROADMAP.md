@@ -40,9 +40,10 @@ pointer, touch and keyboard, fit-to-content.
 
 Done when:
 
-- [ ] Interaction tests for filtering and resizing, including keyboard and touch emulation
-- [ ] Filtering 100,000 rows within the budget
-- [ ] axe and screenshots include the open popovers
+- [x] Interaction tests for filtering and resizing, including keyboard and touch input
+- [x] Filtering 100,000 rows within the budget (locally and in CI, #6)
+- [x] axe and screenshots include the open popovers
+- [x] Docs page with the keyboard table updated
 
 ## Phase 3: Combobox
 

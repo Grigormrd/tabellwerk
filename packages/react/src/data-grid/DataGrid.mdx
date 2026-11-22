@@ -17,14 +17,22 @@ import "@tabellwerk/react/styles.css";
 
 interface Price {
   time: Date;
+  zone: string;
   price: number;
 }
 
 // Define columns outside the component (or memoise them): a new array on
-// every render re-sorts the rows.
+// every render sorts and filters the rows again.
 const columns: ColumnDef<Price>[] = [
-  { id: "time", header: "Time" },
-  { id: "price", header: "Price €/MWh", align: "end", format: (v) => (v as number).toFixed(2) },
+  { id: "time", header: "Time", filter: "date" },
+  { id: "zone", header: "Zone", filter: "values" },
+  {
+    id: "price",
+    header: "Price €/MWh",
+    align: "end",
+    filter: "number",
+    format: (v) => (v as number).toFixed(2),
+  },
 ];
 
 export function Prices({ rows }: { rows: Price[] }) {
@@ -39,19 +47,26 @@ export function Prices({ rows }: { rows: Price[] }) {
 The grid is a single tab stop. Tab moves focus into the grid, to the cell that was active last
 (the first header cell at the start), and Tab again moves on to the next element on the page.
 
-| Key                                              | Action                                                                       |
-| ------------------------------------------------ | ---------------------------------------------------------------------------- |
-| <kbd>→</kbd> / <kbd>←</kbd>                      | Next / previous cell in the row; stops at the edge                           |
-| <kbd>↓</kbd> / <kbd>↑</kbd>                      | Cell below / above; from the first data row, <kbd>↑</kbd> reaches the header |
-| <kbd>Home</kbd> / <kbd>End</kbd>                 | First / last cell in the row                                                 |
-| <kbd>Ctrl</kbd>+<kbd>Home</kbd>                  | First cell of the grid (header), scrolled to the top                         |
-| <kbd>Ctrl</kbd>+<kbd>End</kbd>                   | Last cell of the last row                                                    |
-| <kbd>Page Down</kbd> / <kbd>Page Up</kbd>        | One screen of rows down / up, keeping one row of overlap                     |
-| <kbd>Enter</kbd> or <kbd>Space</kbd> on a header | Sort: ascending → descending → not sorted                                    |
-| <kbd>Shift</kbd>+<kbd>Enter</kbd> on a header    | Add the column to the sort (or change its direction)                         |
-| <kbd>Enter</kbd> or <kbd>F2</kbd> on a cell      | Move into interactive content (links, buttons) in the cell                   |
-| <kbd>Tab</kbd> inside a cell                     | Next interactive element in the same cell (cycles)                           |
-| <kbd>Escape</kbd> inside a cell                  | Back to the cell                                                             |
+| Key                                                 | Action                                                                       |
+| --------------------------------------------------- | ---------------------------------------------------------------------------- |
+| <kbd>→</kbd> / <kbd>←</kbd>                         | Next / previous cell in the row; stops at the edge                           |
+| <kbd>↓</kbd> / <kbd>↑</kbd>                         | Cell below / above; from the first data row, <kbd>↑</kbd> reaches the header |
+| <kbd>Home</kbd> / <kbd>End</kbd>                    | First / last cell in the row                                                 |
+| <kbd>Ctrl</kbd>+<kbd>Home</kbd>                     | First cell of the grid (header), scrolled to the top                         |
+| <kbd>Ctrl</kbd>+<kbd>End</kbd>                      | Last cell of the last row                                                    |
+| <kbd>Page Down</kbd> / <kbd>Page Up</kbd>           | One screen of rows down / up, keeping one row of overlap                     |
+| <kbd>Enter</kbd> or <kbd>Space</kbd> on a header    | Sort: ascending → descending → not sorted                                    |
+| <kbd>Shift</kbd>+<kbd>Enter</kbd> on a header       | Add the column to the sort (or change its direction)                         |
+| <kbd>Alt</kbd>+<kbd>↓</kbd> on a header             | Open the column's filter                                                     |
+| <kbd>F2</kbd> on a header                           | Move to the header's controls (filter button, resize handle)                 |
+| <kbd>Enter</kbd> or <kbd>F2</kbd> on a cell         | Move into interactive content (links, buttons) in the cell                   |
+| <kbd>Tab</kbd> inside a cell or header              | Next control in the same cell (cycles)                                       |
+| <kbd>Escape</kbd> inside a cell or header           | Back to the cell                                                             |
+| <kbd>→</kbd> / <kbd>←</kbd> on a resize handle      | Wider / narrower by 8 px (32 px with <kbd>Shift</kbd>)                       |
+| <kbd>Home</kbd> / <kbd>End</kbd> on a resize handle | Narrowest / widest the column allows                                         |
+| <kbd>Enter</kbd> on a resize handle                 | Fit the column to its content                                                |
+| <kbd>Enter</kbd> or <kbd>Escape</kbd> in a filter   | Close the filter and return to the header                                    |
+| <kbd>Tab</kbd> in a filter                          | Next field; focus stays inside the filter while it is open                   |
 
 On macOS, <kbd>Cmd</kbd> works in place of <kbd>Ctrl</kbd>. Every row of this table has an
 interaction test that presses the real key in a browser.
@@ -60,11 +75,14 @@ interaction test that presses the real key in a browser.
 
 - The grid announces its full size (`aria-rowcount`, `aria-colcount`), and every rendered row and
   cell carries its real position (`aria-rowindex`, `aria-colindex`), so "row 54,321 of 100,001" is
-  correct even though only about 30 rows exist in the DOM.
-- Sortable headers are described as such ("Press Enter to sort…"). The primary sort column has
-  `aria-sort`; further sort columns say their position in their name ("Price, sort 2, ascending").
-- After every sort change, a polite live region announces the new order, for example "Sorted by
-  Zone, ascending, then by Price, descending".
+  correct even though only about 30 rows exist in the DOM. After filtering, the counts describe the
+  rows that match.
+- Headers describe what they offer ("Press Enter to sort… Alt+Down Arrow opens the filter…"). The
+  primary sort column has `aria-sort`; further sort columns say their position in their name
+  ("Price, sort 2, ascending"), and filtered columns say so ("Zone, filtered").
+- A polite live region announces every sort change ("Sorted by Zone, ascending, then by Price,
+  descending") and, once typing has paused, the filter result ("1,234 of 100,000 rows").
+- The resize handle is a focusable separator with its width as value ("160 pixels").
 - The focused row stays in the DOM when it is scrolled out of view, so focus is never lost.
 
 ## Sorting
@@ -75,6 +93,37 @@ empty values (`null`, `undefined`, `NaN`) are always last. Use `compare` on a co
 order, `sortable: false` to switch it off, and `sort` with `onSortChange` to control the state.
 
 <Canvas of={DataGridStories.MultiColumnSort} />
+
+## Filtering
+
+Give a column a `filter` and its header gets a filter button:
+
+| `filter`   | Shows rows whose value…                              | State                                      |
+| ---------- | ---------------------------------------------------- | ------------------------------------------ |
+| `"text"`   | contains the input, as displayed (case-insensitive)  | `{ kind: "text", query }`                  |
+| `"number"` | lies between a minimum and a maximum (both optional) | `{ kind: "number", min?, max? }`           |
+| `"values"` | is one of the checked values                         | `{ kind: "values", values }`               |
+| `"date"`   | lies between two calendar dates (UTC), both optional | `{ kind: "date", from?, to? }` (ISO dates) |
+
+Filters apply while you type; filtering 100,000 rows runs in a deferred render, so the input
+stays responsive. Several filters combine with AND. Control them with `filters` and
+`onFiltersChange`, or set initial ones with `defaultFilters`.
+
+<Canvas of={DataGridStories.Filtered} />
+
+<Canvas of={DataGridStories.ValuesFilterOpen} />
+
+## Column widths
+
+Drag a header edge with a mouse, pen or finger, or use the keyboard: F2 on the header, Tab to the
+resize handle, then the arrow keys. A double click or Enter on the handle fits the column to its
+content (the header and the rows in view). `minWidth` and `maxWidth` limit the range (default 48
+to 800 px), `resizable: false` switches it off, and `columnWidths` with `onColumnWidthsChange`
+controls the widths, for example to store them.
+
+Resizing changes one CSS custom property; no row is rendered again.
+
+<Canvas of={DataGridStories.ResizedColumns} />
 
 ## Interactive cells
 
@@ -88,17 +137,20 @@ after sorting or scrolling the same element shows a different row.
 
 ## Translation
 
-Every text the grid shows or announces can be replaced with the `messages` prop:
+Every text the grid shows or announces can be replaced with the `messages` prop; each key, and
+each filter label, is optional:
 
 ```tsx
 <DataGrid
   messages={{
     empty: "Keine Zeilen",
-    sortHint: "Eingabetaste sortiert. Umschalt+Eingabe fügt die Spalte zur Sortierung hinzu.",
+    noMatches: "Keine Zeile passt zu den Filtern",
     sorted: (sort) =>
       sort.length === 0
         ? "Nicht sortiert"
         : `Sortiert nach ${sort.map((s) => `${s.header}, ${s.direction === "ascending" ? "aufsteigend" : "absteigend"}`).join(", dann nach ")}`,
+    filterResult: (shown, total) => `${shown} von ${total} Zeilen`,
+    filterLabels: { contains: "Enthält", clear: "Filter löschen", close: "Schließen" },
   }}
   /* … */
 />
@@ -114,3 +166,5 @@ Every text the grid shows or announces can be replaced with the `messages` prop:
 - Browsers cap the height of an element at a few million pixels; with 36 px rows that is several
   hundred thousand rows. Beyond that the grid would need scroll scaling, which it does not do.
 - Columns are not virtualised; the grid is tested with up to 50 columns.
+- The `"values"` filter lists up to 200 distinct values; use `"text"` for columns with more.
+- Fitting a column measures the rows in view, not all rows.

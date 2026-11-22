@@ -150,3 +150,69 @@ export const InteractiveCells: StoryObj<typeof DataGrid<Plant>> = {
 export const Empty: Story = {
   args: { rows: [] },
 };
+
+const openFilterFor =
+  (header: string) =>
+  async ({ canvasElement }: { canvasElement: HTMLElement }) => {
+    const button = within(canvasElement).getByRole("button", { name: `Filter ${header}` });
+    await userEvent.click(button);
+    await waitFor(() =>
+      expect(within(document.body).getByRole("dialog", { name: `Filter ${header}` })).toBeVisible(),
+    );
+  };
+
+/**
+ * Columns with `filter` get a filter button in the header. Prices between 100
+ * and 120 €/MWh in the zones North and South; the result count is announced.
+ */
+export const Filtered: Story = {
+  args: {
+    defaultFilters: {
+      price: { kind: "number", min: 100, max: 120 },
+      zone: { kind: "values", values: ["North", "South"] },
+    },
+  },
+  play: async ({ canvasElement }) => {
+    const grid = within(canvasElement).getByRole("grid");
+    await expect(Number(grid.getAttribute("aria-rowcount"))).toBeLessThan(201);
+  },
+};
+
+/** The text filter (`filter: "text"`), open. */
+export const TextFilterOpen: Story = {
+  play: openFilterFor("#"),
+};
+
+/** The number filter (`filter: "number"`), open, with a minimum. */
+export const NumberFilterOpen: Story = {
+  args: { defaultFilters: { price: { kind: "number", min: 150 } } },
+  play: openFilterFor("Price €/MWh"),
+};
+
+/** The values filter (`filter: "values"`), open, with one value unchecked. */
+export const ValuesFilterOpen: Story = {
+  args: {
+    defaultFilters: { zone: { kind: "values", values: ["Central", "East", "South", "West"] } },
+  },
+  play: openFilterFor("Zone"),
+};
+
+/** The date filter (`filter: "date"`), open. */
+export const DateFilterOpen: Story = {
+  args: { defaultFilters: { time: { kind: "date", from: "2023-01-02" } } },
+  play: openFilterFor("Time (UTC)"),
+};
+
+/** Filters that match nothing say so. */
+export const NoMatches: Story = {
+  args: { defaultFilters: { zone: { kind: "values", values: [] } } },
+};
+
+/**
+ * Drag a header edge (mouse, pen or touch), or press F2 on a header, Tab to
+ * the resize handle and use the arrow keys (Shift for bigger steps, Home and
+ * End for the limits). A double click or Enter fits the column to its content.
+ */
+export const ResizedColumns: Story = {
+  args: { defaultColumnWidths: { time: 140, zone: 220, price: 120 } },
+};

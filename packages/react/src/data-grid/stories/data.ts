@@ -61,21 +61,23 @@ const formatTime = (value: unknown) =>
   value instanceof Date ? value.toISOString().slice(0, 16).replace("T", " ") : "";
 
 export const marketColumns: ColumnDef<MarketRow>[] = [
-  { id: "id", header: "#", width: 90, align: "end" },
-  { id: "time", header: "Time (UTC)", width: 160, format: formatTime },
-  { id: "zone", header: "Zone", width: 110 },
+  { id: "id", header: "#", width: 100, align: "end", filter: "text" },
+  { id: "time", header: "Time (UTC)", width: 180, format: formatTime, filter: "date" },
+  { id: "zone", header: "Zone", width: 120, filter: "values" },
   {
     id: "price",
     header: "Price €/MWh",
-    width: 150,
+    width: 170,
     align: "end",
+    filter: "number",
     format: (v) => euro.format(v as number),
   },
   {
     id: "wind",
     header: "Wind MW",
-    width: 120,
+    width: 140,
     align: "end",
+    filter: "number",
     format: (v) => integer.format(v as number),
   },
   {

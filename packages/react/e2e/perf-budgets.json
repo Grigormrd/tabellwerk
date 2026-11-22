@@ -7,6 +7,9 @@
     "tabellwerk.sortStrings": 200,
     "tabellwerk.keyboardStep": 100,
     "tabellwerk.scrollLongFrames": 20,
-    "tabellwerk.scrollWorstFrame": 150
+    "tabellwerk.scrollWorstFrame": 150,
+    "tabellwerk.filterKeystroke": 100,
+    "tabellwerk.filterResult": 200,
+    "tabellwerk.resizeWorstFrame": 100
   }
 }

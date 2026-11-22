@@ -3,13 +3,13 @@
     "name": "Everything (index)",
     "path": "dist/index.js",
     "import": "*",
-    "limit": "5 kB"
+    "limit": "9 kB"
   },
   {
     "name": "DataGrid only",
     "path": "dist/data-grid.js",
     "import": "{ DataGrid }",
-    "limit": "5 kB"
+    "limit": "9 kB"
   },
   {
     "name": "LiveAnnouncer only",
@@ -26,7 +26,7 @@
   {
     "name": "styles.css",
     "path": "dist/styles.css",
-    "limit": "2 kB",
+    "limit": "3 kB",
     "rolldown": false
   }
 ]
