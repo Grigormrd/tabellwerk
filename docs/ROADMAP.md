@@ -41,7 +41,7 @@ pointer, touch and keyboard, fit-to-content.
 Done when:
 
 - [x] Interaction tests for filtering and resizing, including keyboard and touch input
-- [ ] Filtering 100,000 rows within the budget (locally yes; CI pending on the pull request)
+- [x] Filtering 100,000 rows within the budget (locally and in CI, #6)
 - [x] axe and screenshots include the open popovers
 - [x] Docs page with the keyboard table updated
 

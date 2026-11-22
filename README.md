@@ -118,19 +118,22 @@ The reasoning behind these choices is recorded in [Architecture Decision Records
 
 Measured on the production Storybook build with 100,000 synthetic rows × 8 columns, Chromium
 158 (headless), CPU throttled 4×, median of 5 runs, on 2026-11-18: locally on an Intel Core
-i5-12400F and in CI on a GitHub-hosted `ubuntu-latest` runner
+i5-12400F and in CI on a GitHub-hosted `ubuntu-latest` runner (run on PR 6)
 ([method](docs/adr/0004-own-virtualiser.md#measurements)):
 
-| Interaction                                                 |   Local |  CI | Budget in CI |
-| ----------------------------------------------------------- | ------: | --: | -----------: |
-| Mount the grid (click → next paint)                         |  128 ms |   – |       200 ms |
-| Sort by a number column                                     |   72 ms |   – |       200 ms |
-| Sort by a text column                                       |   64 ms |   – |       200 ms |
-| Keyboard step (ArrowDown, PageDown)                         |   32 ms |   – |       100 ms |
-| Key press in a text filter (until the character is painted) |   24 ms |   – |       100 ms |
-| Key press in a text filter (until the filtered rows show)   |   74 ms |   – |       200 ms |
-| Long frames (> 50 ms) while jumping through 10,000 rows     |       2 |   – |           20 |
-| Worst frame while dragging a column edge 200 px             | < 50 ms |   – |       100 ms |
+| Interaction                                                 |   Local |      CI | Budget in CI |
+| ----------------------------------------------------------- | ------: | ------: | -----------: |
+| Mount the grid (click → next paint)                         |  128 ms |   80 ms |       200 ms |
+| Sort by a number column                                     |   72 ms |   80 ms |       200 ms |
+| Sort by a text column                                       |   64 ms |   64 ms |       200 ms |
+| Keyboard step (ArrowDown, PageDown)                         |   32 ms |   32 ms |       100 ms |
+| Key press in a text filter (until the character is painted) |   24 ms |   16 ms |       100 ms |
+| Key press in a text filter (until the filtered rows show)   |   74 ms |   68 ms |       200 ms |
+| Long frames (> 50 ms) while jumping through 10,000 rows     |       2 |       0 |           20 |
+| Worst frame while dragging a column edge 200 px             | < 50 ms | < 50 ms |       100 ms |
+
+GitHub-hosted runners vary from run to run: on PR 4 the same runner type needed 112 ms to mount
+the grid, on PR 6 80 ms. The budgets are set so that both pass with room to spare.
 
 Interaction times come from the Event Timing API, the data INP is computed from; frames come from
 the Long Animation Frames API, which reports only frames over 50 ms. CI runs the same measurement
