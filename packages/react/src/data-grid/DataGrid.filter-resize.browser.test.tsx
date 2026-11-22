@@ -45,7 +45,7 @@ async function focusHeader(id: string) {
 }
 
 describe("DataGrid filtering", () => {
-  it("Alt+Down Arrow opens the filter, values filter by checkbox, Escape returns to the header", async () => {
+  it("Alt+Down Arrow opens the filter, the values combobox filters, Escape returns to the header", async () => {
     const screen = await render(<Harness />);
     await focusHeader("zone");
     await userEvent.keyboard("{Alt>}{ArrowDown}{/Alt}");
@@ -55,13 +55,20 @@ describe("DataGrid filtering", () => {
     await expect
       .element(screen.getByRole("button", { name: "Filter Zone" }))
       .toHaveAttribute("aria-expanded", "true");
-    await expect.element(screen.getByRole("button", { name: "Select all" })).toHaveFocus();
+    const values = screen.getByRole("combobox", { name: "Show rows with" });
+    await expect.element(values).toHaveFocus();
 
-    await screen.getByRole("checkbox", { name: "North" }).click();
-    await expect.poll(() => new Set(columnTexts("zone")).has("North")).toBe(false);
-    expect(rowCount()).toBeLessThan(300);
-    expect(rowCount()).toBeGreaterThan(0);
+    // The library's own multiple combobox: type, choose, choose another.
+    await userEvent.keyboard("nor{ArrowDown}{Enter}");
+    await expect.poll(() => new Set(columnTexts("zone"))).toEqual(new Set(["North"]));
+    await userEvent.keyboard("sou{ArrowDown}{Enter}");
+    await expect.poll(() => new Set(columnTexts("zone"))).toEqual(new Set(["North", "South"]));
+    const expected = rows.filter((r) => r.zone === "North" || r.zone === "South").length;
+    await expect.poll(() => rowCount()).toBe(expected);
 
+    // First Escape closes the combobox list, the second closes the dialog.
+    await userEvent.keyboard("{Escape}");
+    expect(dialog()).not.toBeNull();
     await userEvent.keyboard("{Escape}");
     expect(dialog()).toBeNull();
     expect(document.activeElement).toBe(header("zone"));
@@ -107,16 +114,24 @@ describe("DataGrid filtering", () => {
     expect(columnTexts("time").every((t) => t.startsWith("2023-01-02"))).toBe(true);
   });
 
-  it("Clear filter and Select none", async () => {
-    const screen = await render(<Harness />);
+  it("removing the last value or Clear filter shows every row again", async () => {
+    const screen = await render(
+      <Harness defaultFilters={{ zone: { kind: "values", values: ["East"] } }} />,
+    );
+    expect(rowCount()).toBe(rows.filter((r) => r.zone === "East").length);
     await screen.getByRole("button", { name: "Filter Zone" }).click();
-    await screen.getByRole("button", { name: "Select none" }).click();
+    await screen.getByRole("button", { name: "Remove East" }).click();
+    await expect.poll(() => rowCount()).toBe(300);
+    await expect.element(screen.getByRole("button", { name: "Clear filter" })).toBeDisabled();
+  });
+
+  it("says when filters match nothing", async () => {
+    const screen = await render(
+      <Harness defaultFilters={{ zone: { kind: "values", values: [] } }} />,
+    );
     await expect
       .element(screen.getByRole("gridcell", { name: "No rows match the filters" }))
       .toBeVisible();
-    await screen.getByRole("button", { name: "Select all" }).click();
-    await expect.poll(() => rowCount()).toBe(300);
-    await expect.element(screen.getByRole("button", { name: "Clear filter" })).toBeDisabled();
   });
 
   it("keeps focus inside the dialog and closes on a click outside without moving focus back", async () => {

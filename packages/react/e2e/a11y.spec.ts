@@ -55,6 +55,11 @@ test("Markdown tables in docs pages render as tables", async ({ page }) => {
   const table = page.locator("#storybook-docs table").first();
   await expect(table).toBeVisible();
   await expect(table.getByRole("row")).toHaveCount(19);
+
+  await openDocs(page, "components-combobox--docs");
+  const comboboxTable = page.locator("#storybook-docs table").first();
+  await expect(comboboxTable).toBeVisible();
+  await expect(comboboxTable.getByRole("row")).toHaveCount(11);
 });
 
 // Guards the checks above: without this, a broken theme switch would let the

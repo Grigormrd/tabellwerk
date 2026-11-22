@@ -12,6 +12,10 @@
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
+    "./combobox": {
+      "types": "./dist/combobox.d.ts",
+      "default": "./dist/combobox.js"
+    },
     "./data-grid": {
       "types": "./dist/data-grid.d.ts",
       "default": "./dist/data-grid.js"

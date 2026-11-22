@@ -3,21 +3,28 @@ import { storybookTest } from "@storybook/addon-vitest/vitest-plugin";
 import react from "@vitejs/plugin-react";
 import { playwright } from "@vitest/browser-playwright";
 import { defineConfig } from "vitest/config";
-import { pointerDoubleClick, pointerDrag } from "./vitest.commands.ts";
+import { imeCompose, imeStart, pointerDoubleClick, pointerDrag } from "./vitest.commands.ts";
 
 const dirname = fileURLToPath(new URL(".", import.meta.url));
 
+type Engine = "chromium" | "firefox" | "webkit";
+
 // A fresh object per project: Vitest names the instances in place.
-const browser = () => ({
+const browser = (engines: Engine[] = ["chromium"]) => ({
   enabled: true,
   headless: true,
   provider: playwright(),
-  instances: [{ browser: "chromium" as const }],
+  instances: engines.map((engine) => ({ browser: engine })),
   // Desktop size: the default (414 × 896) puts wide grids partly outside the
   // frame, where real pointer input cannot reach them.
   viewport: { width: 1280, height: 900 },
-  commands: { pointerDrag, pointerDoubleClick },
+  commands: { pointerDrag, pointerDoubleClick, imeCompose, imeStart },
 });
+
+// Firefox and WebKit run the keyboard tests of the widgets whose behaviour
+// differs between engines (focus, text selection, composition). CI installs
+// them and sets TBW_ENGINES=all; locally only Chromium is needed.
+const crossEngine = process.env["TBW_ENGINES"] === "all";
 
 export default defineConfig({
   plugins: [react()],
@@ -48,6 +55,20 @@ export default defineConfig({
           browser: browser(),
         },
       },
+      ...(crossEngine
+        ? [
+            {
+              extends: true as const,
+              test: {
+                name: "engines",
+                include: ["src/combobox/**/*.browser.test.{ts,tsx}"],
+                fileParallelism: false,
+                setupFiles: [".storybook/vitest.setup.ts"],
+                browser: browser(["firefox", "webkit"]),
+              },
+            },
+          ]
+        : []),
       {
         // Every story renders, its play function passes and axe finds nothing.
         extends: true,

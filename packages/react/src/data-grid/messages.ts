@@ -1,3 +1,4 @@
+import type { ComboboxMessages } from "../combobox/messages.ts";
 import type { SortDirection } from "./types.ts";
 
 /** What a column header offers, for the screen reader hint. */
@@ -38,8 +39,7 @@ export interface DataGridMessages {
     from: string;
     to: string;
     values: string;
-    selectAll: string;
-    selectNone: string;
+    valuesHint: string;
     clear: string;
     close: string;
   };
@@ -47,6 +47,8 @@ export interface DataGridMessages {
   resizeHandle: (header: string) => string;
   /** Spoken value of the resize handle. */
   widthText: (pixels: number) => string;
+  /** Texts of the combobox in `"values"` filters. */
+  comboboxMessages: Partial<ComboboxMessages>;
 }
 
 const words: Record<SortDirection, string> = { ascending: "ascending", descending: "descending" };
@@ -83,11 +85,11 @@ export const defaultMessages: DataGridMessages = {
     from: "From",
     to: "To",
     values: "Show rows with",
-    selectAll: "Select all",
-    selectNone: "Select none",
+    valuesHint: "Type to find a value. With no value chosen, every row is shown.",
     clear: "Clear filter",
     close: "Close",
   },
   resizeHandle: (header) => `Resize ${header}`,
   widthText: (pixels) => `${pixels} pixels`,
+  comboboxMessages: {},
 };

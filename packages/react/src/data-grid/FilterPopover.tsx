@@ -2,11 +2,14 @@ import {
   useEffect,
   useId,
   useLayoutEffect,
+  useMemo,
   useRef,
   useState,
   type JSX,
   type KeyboardEvent,
 } from "react";
+import { Combobox } from "../combobox/Combobox.tsx";
+import { follow, place } from "../internal/place.ts";
 import { isActive } from "./filter.ts";
 import type { DataGridMessages } from "./messages.ts";
 import type { ColumnFilter, FilterKind } from "./types.ts";
@@ -25,26 +28,7 @@ export interface FilterPopoverProps {
   onClose: (restoreFocus: boolean) => void;
 }
 
-const GAP = 4;
-const MARGIN = 8;
-
-function place(popover: HTMLElement, anchor: HTMLElement) {
-  const rect = anchor.getBoundingClientRect();
-  const width = popover.offsetWidth;
-  const height = popover.offsetHeight;
-  const left = Math.min(
-    Math.max(MARGIN, rect.left),
-    Math.max(MARGIN, window.innerWidth - width - MARGIN),
-  );
-  // Below the header if it fits, otherwise above it.
-  const below = rect.bottom + GAP;
-  const top =
-    below + height <= window.innerHeight - MARGIN || rect.top - GAP - height < MARGIN
-      ? below
-      : rect.top - GAP - height;
-  popover.style.left = `${Math.round(left)}px`;
-  popover.style.top = `${Math.round(top)}px`;
-}
+const NO_VALUES: readonly string[] = [];
 
 const parseNumber = (text: string): number | undefined => {
   if (text.trim() === "") return undefined;
@@ -52,7 +36,9 @@ const parseNumber = (text: string): number | undefined => {
   return Number.isFinite(value) ? value : undefined;
 };
 
-const FOCUSABLE = 'input:not([disabled]), button:not([disabled]), [tabindex]:not([tabindex="-1"])';
+/** Tab stops inside the dialog: no hidden inputs, nothing with tabindex="-1". */
+const FOCUSABLE =
+  'input:not([disabled]):not([type="hidden"]):not([tabindex="-1"]), button:not([disabled]):not([tabindex="-1"]), [tabindex]:not([tabindex="-1"])';
 
 /**
  * The filter dialog of one column. A non-modal dialog in the top layer
@@ -79,25 +65,21 @@ export function FilterPopover({
     onChange(undefined);
     setGeneration((g) => g + 1);
   };
+  const valueOptions = useMemo(() => values.map((v) => ({ value: v, label: v })), [values]);
 
   useLayoutEffect(() => {
     const popover = ref.current;
     if (!popover) return;
     popover.showPopover();
     place(popover, anchor);
-    popover.querySelector<HTMLElement>(FOCUSABLE)?.focus();
-
-    let frame = 0;
-    const reposition = () => {
-      cancelAnimationFrame(frame);
-      frame = requestAnimationFrame(() => place(popover, anchor));
-    };
-    window.addEventListener("scroll", reposition, { capture: true, passive: true });
-    window.addEventListener("resize", reposition);
+    // The first text field, or else the first control.
+    (
+      popover.querySelector<HTMLElement>('input:not([type="hidden"]):not([type="checkbox"])') ??
+      popover.querySelector<HTMLElement>(FOCUSABLE)
+    )?.focus();
+    const stop = follow(popover, anchor);
     return () => {
-      cancelAnimationFrame(frame);
-      window.removeEventListener("scroll", reposition, { capture: true });
-      window.removeEventListener("resize", reposition);
+      stop();
       if (popover.matches(":popover-open")) popover.hidePopover();
     };
   }, [anchor]);
@@ -113,6 +95,9 @@ export function FilterPopover({
   }, [anchor, onClose]);
 
   const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    // A control inside handled the key itself (the combobox closes its list
+    // on Escape and selects on Enter); the dialog stays open.
+    if (event.defaultPrevented) return;
     if (event.key === "Escape") {
       event.preventDefault();
       event.stopPropagation();
@@ -223,48 +208,20 @@ export function FilterPopover({
       break;
     }
     case "values": {
-      // No filter means every value is shown, so every box starts checked.
-      const selected = new Set(filter?.kind === "values" ? filter.values : values);
-      const toggle = (value: string, checked: boolean) => {
-        const next = new Set(selected);
-        if (checked) next.add(value);
-        else next.delete(value);
-        onChange(
-          next.size === values.length
-            ? undefined
-            : { kind: "values", values: values.filter((v) => next.has(v)) },
-        );
-      };
+      // The library's own multiple combobox: type to find a value, Enter to
+      // add or remove it. No value chosen means no filter.
       body = (
-        <fieldset className="tbw-filter__values">
-          <legend>{labels.values}</legend>
-          <div className="tbw-filter__row">
-            <button type="button" className="tbw-filter__link" onClick={() => onChange(undefined)}>
-              {labels.selectAll}
-            </button>
-            <button
-              type="button"
-              className="tbw-filter__link"
-              onClick={() => onChange({ kind: "values", values: [] })}
-            >
-              {labels.selectNone}
-            </button>
-          </div>
-          <ul className="tbw-filter__list">
-            {values.map((value) => (
-              <li key={value}>
-                <label className="tbw-filter__check">
-                  <input
-                    type="checkbox"
-                    checked={selected.has(value)}
-                    onChange={(e) => toggle(value, e.target.checked)}
-                  />
-                  <span>{value}</span>
-                </label>
-              </li>
-            ))}
-          </ul>
-        </fieldset>
+        <Combobox
+          multiple
+          label={labels.values}
+          description={labels.valuesHint}
+          options={valueOptions}
+          value={filter?.kind === "values" ? filter.values : NO_VALUES}
+          onChange={(next) =>
+            onChange(next.length > 0 ? { kind: "values", values: next } : undefined)
+          }
+          messages={messages.comboboxMessages}
+        />
       );
       break;
     }

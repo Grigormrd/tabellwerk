@@ -255,54 +255,6 @@
     font-weight: var(--tbw-font-weight-regular);
   }
 
-  .tbw-filter__values {
-    display: grid;
-    gap: var(--tbw-space-2);
-    margin: 0;
-    padding: 0;
-    border: 0;
-  }
-
-  .tbw-filter__values legend {
-    padding: 0;
-    margin-block-end: var(--tbw-space-2);
-    font-weight: var(--tbw-font-weight-semibold);
-  }
-
-  .tbw-filter__list {
-    display: grid;
-    gap: var(--tbw-space-1);
-    max-block-size: 14rem;
-    overflow: auto;
-    margin: 0;
-    padding: 0;
-    list-style: none;
-  }
-
-  .tbw-filter__check {
-    display: flex;
-    align-items: center;
-    gap: var(--tbw-space-2);
-    min-block-size: 1.75rem;
-  }
-
-  .tbw-filter__check input {
-    inline-size: 1rem;
-    block-size: 1rem;
-    margin: 0;
-    accent-color: var(--tbw-color-accent);
-  }
-
-  .tbw-filter__link {
-    padding: 0;
-    border: 0;
-    background: none;
-    color: var(--tbw-color-accent);
-    font: inherit;
-    text-decoration: underline;
-    cursor: pointer;
-  }
-
   .tbw-filter__actions {
     display: flex;
     justify-content: flex-end;

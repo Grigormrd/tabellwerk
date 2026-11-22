@@ -4,9 +4,14 @@
 
 ```ts
 
+import { ChangeEvent } from 'react';
 import { ComponentPropsWithRef } from 'react';
+import { CompositionEvent as CompositionEvent_2 } from 'react';
 import { CSSProperties } from 'react';
+import { FocusEvent as FocusEvent_2 } from 'react';
 import { JSX } from 'react';
+import { KeyboardEvent as KeyboardEvent_2 } from 'react';
+import { MouseEvent as MouseEvent_2 } from 'react';
 import { ReactNode } from 'react';
 
 // @public
@@ -65,10 +70,103 @@ export type ColumnFilter = {
 export type ColumnWidths = Readonly<Record<string, number>>;
 
 // @public
+export function Combobox(props: ComboboxProps): JSX.Element;
+
+// @public
+export type ComboboxFilter = "contains" | "startsWith" | ((option: ComboboxOption, query: string) => boolean);
+
+// @public
+export interface ComboboxMessages {
+    added: (label: string) => string;
+    loadError: string;
+    loading: string;
+    noResults: string;
+    remove: (label: string) => string;
+    removed: (label: string) => string;
+    results: (count: number) => string;
+    selectedValues: string;
+    showOptions: string;
+    valueMissing: string;
+}
+
+// Warning: (ae-forgotten-export) The symbol "ComboboxBaseProps" needs to be exported by the entry point index.d.ts
+//
+// @public
+export type ComboboxMultipleProps = ComboboxBaseProps & UseComboboxMultipleOptions;
+
+// @public
+export interface ComboboxOption {
+    disabled?: boolean;
+    group?: string;
+    label: string;
+    value: string;
+}
+
+// @public
+export type ComboboxProps = ComboboxSingleProps | ComboboxMultipleProps;
+
+// @public
+export type ComboboxSingleProps = ComboboxBaseProps & UseComboboxSingleOptions;
+
+// @public
+export interface ComboboxState {
+    activeIndex: number;
+    error: boolean;
+    getOptionProps: (index: number) => {
+        id: string;
+        role: "option";
+        "aria-selected": boolean;
+        "aria-disabled": true | undefined;
+        "data-active": true | undefined;
+        onMouseDown: (event: MouseEvent_2) => void;
+        onClick: () => void;
+        onPointerMove: () => void;
+    };
+    ids: {
+        label: string;
+        input: string;
+        listbox: string;
+        status: string;
+    };
+    inputProps: {
+        id: string;
+        role: "combobox";
+        value: string;
+        "aria-expanded": boolean;
+        "aria-controls": string;
+        "aria-autocomplete": "list" | "both";
+        "aria-activedescendant": string | undefined;
+        autoComplete: "off";
+        spellCheck: false;
+        disabled: boolean | undefined;
+        onChange: (event: ChangeEvent<HTMLInputElement>) => void;
+        onKeyDown: (event: KeyboardEvent_2<HTMLInputElement>) => void;
+        onCompositionStart: () => void;
+        onCompositionEnd: (event: CompositionEvent_2<HTMLInputElement>) => void;
+        onBlur: (event: FocusEvent_2<HTMLInputElement>) => void;
+        onClick: () => void;
+        ref: (element: HTMLInputElement | null) => void;
+    };
+    inputValue: string;
+    items: readonly ComboboxOption[];
+    labelOf: (value: string) => string;
+    loading: boolean;
+    multiple: boolean;
+    open: boolean;
+    optionId: (index: number) => string;
+    remove: (value: string) => void;
+    scope: string;
+    select: (option: ComboboxOption) => void;
+    selected: readonly string[];
+    setOpen: (open: boolean) => void;
+}
+
+// @public
 export function DataGrid<Row>(props: DataGridProps<Row>): JSX.Element;
 
 // @public
 export interface DataGridMessages {
+    comboboxMessages: Partial<ComboboxMessages>;
     empty: string;
     filterButton: (header: string) => string;
     filterDialog: (header: string) => string;
@@ -80,8 +178,7 @@ export interface DataGridMessages {
         from: string;
         to: string;
         values: string;
-        selectAll: string;
-        selectNone: string;
+        valuesHint: string;
         clear: string;
         close: string;
     };
@@ -137,6 +234,9 @@ export interface DataGridState {
 }
 
 // @public
+export const defaultComboboxMessages: ComboboxMessages;
+
+// @public
 export const defaultDataGridMessages: DataGridMessages;
 
 // @public
@@ -163,6 +263,11 @@ export interface LiveAnnouncerProps {
 }
 
 // @public
+export type LoadOptions = (query: string, context: {
+    signal: AbortSignal;
+}) => Promise<readonly ComboboxOption[]>;
+
+// @public
 export type Politeness = "polite" | "assertive";
 
 // @public
@@ -185,6 +290,30 @@ export function toggleSort(state: SortState, columnId: string, multi?: boolean):
 
 // @public
 export function useAnnouncer(): Announce;
+
+// @public
+export function useCombobox(options: UseComboboxOptions): ComboboxState;
+
+// Warning: (ae-forgotten-export) The symbol "BaseOptions" needs to be exported by the entry point index.d.ts
+//
+// @public
+export interface UseComboboxMultipleOptions extends BaseOptions {
+    defaultValue?: readonly string[];
+    multiple: true;
+    onChange?: (value: string[]) => void;
+    value?: readonly string[];
+}
+
+// @public
+export type UseComboboxOptions = UseComboboxSingleOptions | UseComboboxMultipleOptions;
+
+// @public
+export interface UseComboboxSingleOptions extends BaseOptions {
+    defaultValue?: string | null;
+    multiple?: false;
+    onChange?: (value: string | null) => void;
+    value?: string | null;
+}
 
 // @public
 export function useDataGrid<Row>(options: UseDataGridOptions<Row>): DataGridState;
