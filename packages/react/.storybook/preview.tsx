@@ -1,6 +1,7 @@
 import "@tabellwerk/tokens/tokens.css";
 import "../src/styles/base.css";
 import "../src/data-grid/data-grid.css";
+import "../src/combobox/combobox.css";
 import "./preview.css";
 
 import type { Decorator, Preview } from "@storybook/react-vite";

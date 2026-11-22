@@ -98,12 +98,12 @@ order, `sortable: false` to switch it off, and `sort` with `onSortChange` to con
 
 Give a column a `filter` and its header gets a filter button:
 
-| `filter`   | Shows rows whose value…                              | State                                      |
-| ---------- | ---------------------------------------------------- | ------------------------------------------ |
-| `"text"`   | contains the input, as displayed (case-insensitive)  | `{ kind: "text", query }`                  |
-| `"number"` | lies between a minimum and a maximum (both optional) | `{ kind: "number", min?, max? }`           |
-| `"values"` | is one of the checked values                         | `{ kind: "values", values }`               |
-| `"date"`   | lies between two calendar dates (UTC), both optional | `{ kind: "date", from?, to? }` (ISO dates) |
+| `filter`   | Shows rows whose value…                                                                    | State                                      |
+| ---------- | ------------------------------------------------------------------------------------------ | ------------------------------------------ |
+| `"text"`   | contains the input, as displayed (case-insensitive)                                        | `{ kind: "text", query }`                  |
+| `"number"` | lies between a minimum and a maximum (both optional)                                       | `{ kind: "number", min?, max? }`           |
+| `"values"` | is one of the chosen values (a multiple [combobox](?path=/docs/components-combobox--docs)) | `{ kind: "values", values }`               |
+| `"date"`   | lies between two calendar dates (UTC), both optional                                       | `{ kind: "date", from?, to? }` (ISO dates) |
 
 Filters apply while you type; filtering 100,000 rows runs in a deferred render, so the input
 stays responsive. Several filters combine with AND. Control them with `filters` and
@@ -166,5 +166,5 @@ each filter label, is optional:
 - Browsers cap the height of an element at a few million pixels; with 36 px rows that is several
   hundred thousand rows. Beyond that the grid would need scroll scaling, which it does not do.
 - Columns are not virtualised; the grid is tested with up to 50 columns.
-- The `"values"` filter lists up to 200 distinct values; use `"text"` for columns with more.
+- The `"values"` filter offers up to 200 distinct values; use `"text"` for columns with more.
 - Fitting a column measures the rows in view, not all rows.

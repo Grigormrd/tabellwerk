@@ -14,9 +14,9 @@ for (const story of loadStories()) {
       await page.emulateMedia({ colorScheme });
       await page.setViewportSize({ width: 800, height: 600 });
       await openStory(page, story.id);
-      await expect(page.locator("#storybook-root")).toHaveScreenshot(
-        `${story.id}--${colorScheme}.png`,
-      );
+      // The whole viewport, not the story element: popups (combobox lists,
+      // filter dialogs) are in the top layer and may extend beyond it.
+      await expect(page).toHaveScreenshot(`${story.id}--${colorScheme}.png`);
     });
   }
 }

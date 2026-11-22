@@ -3,6 +3,7 @@ import { defineConfig } from "tsdown";
 export default defineConfig({
   entry: {
     index: "src/index.ts",
+    combobox: "src/combobox/index.ts",
     "data-grid": "src/data-grid/index.ts",
     "live-announcer": "src/live-announcer/index.ts",
     "visually-hidden": "src/visually-hidden/index.ts",

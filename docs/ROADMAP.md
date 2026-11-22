@@ -52,10 +52,10 @@ IME composition, form integration.
 
 Done when:
 
-- [ ] Keyboard tests pass in Chromium, Firefox and WebKit
-- [ ] IME and form (submit, reset) tests pass
-- [ ] axe and screenshots for every state in light and dark
-- [ ] Own size-limit entry; the grid's "choose values" filter uses the combobox
+- [x] Keyboard tests pass in Chromium, Firefox and WebKit (CI, #7; the IME tests run in Chromium only)
+- [x] IME and form (submit, reset) tests pass
+- [x] axe and screenshots for every state in light and dark
+- [x] Own size-limit entry; the grid's "choose values" filter uses the combobox
 
 ## Phase 4: Date picker
 

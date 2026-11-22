@@ -58,9 +58,44 @@ export const pointerDoubleClick: BrowserCommand<[{ x: number; y: number }]> = as
   await context.page.mouse.dblclick(box.x + x, box.y + y);
 };
 
+/**
+ * IME input in Chromium through the DevTools protocol, like typing Japanese
+ * with an input method: each step updates the uncommitted composition text
+ * (compositionstart/update, input events with isComposing), then the final
+ * text is committed (compositionend).
+ */
+export const imeCompose: BrowserCommand<[{ steps: string[]; commit: string }]> = async (
+  context,
+  { steps, commit },
+) => {
+  const cdp = await context.page.context().newCDPSession(context.page);
+  for (const text of steps) {
+    await cdp.send("Input.imeSetComposition", {
+      text,
+      selectionStart: text.length,
+      selectionEnd: text.length,
+    });
+  }
+  await cdp.send("Input.insertText", { text: commit });
+  await cdp.detach();
+};
+
+/** Starts a composition and leaves it open (for checks during composition). */
+export const imeStart: BrowserCommand<[{ text: string }]> = async (context, { text }) => {
+  const cdp = await context.page.context().newCDPSession(context.page);
+  await cdp.send("Input.imeSetComposition", {
+    text,
+    selectionStart: text.length,
+    selectionEnd: text.length,
+  });
+  await cdp.detach();
+};
+
 declare module "vitest/browser" {
   interface BrowserCommands {
     pointerDrag: (options: DragOptions) => Promise<void>;
     pointerDoubleClick: (options: { x: number; y: number }) => Promise<void>;
+    imeCompose: (options: { steps: string[]; commit: string }) => Promise<void>;
+    imeStart: (options: { text: string }) => Promise<void>;
   }
 }

@@ -9,8 +9,8 @@ light/dark/forced-colours themes, and every claim backed by a test.
 keyboard tables, all stories in light and dark; try the
 [100,000-row grid](https://tabellwerk.vercel.app/?path=/story/components-datagrid--hundred-thousand-rows))
 
-> **Status: under construction.** The data grid renders, navigates, sorts, filters and resizes
-> 100,000 rows (Phases 1 and 2). The combobox and the date picker follow in the phases of the
+> **Status: under construction.** The data grid (100,000 rows: navigation, sorting, filters,
+> column widths) and the combobox are done (Phases 1 to 3). The date picker follows in the
 > [roadmap](docs/ROADMAP.md). Nothing is published to npm yet.
 
 ## Packages
@@ -52,9 +52,17 @@ const columns: ColumnDef<Price>[] = [
 <DataGrid aria-label="Day-ahead prices" rows={rows} columns={columns} style={{ height: 480 }} />;
 ```
 
+- **`Combobox`** following the [WAI-ARIA combobox pattern](https://www.w3.org/WAI/ARIA/apg/patterns/combobox/):
+  - focus stays in the field (`aria-activedescendant`); list and inline autocomplete; matching
+    ignores case and diacritics ("zurich" finds "Zürich")
+  - correct input method (IME) handling: no filtering while Japanese or Chinese text is composed
+  - groups, 5,000-option lists rendered virtually with `aria-setsize`/`aria-posinset`, options
+    from a server with loading, empty and error states and aborted stale requests
+  - several values as removable chips; forms: `name`, `required` with native validation, reset
+  - tested with real keys in Chromium, Firefox and WebKit; `useCombobox()` for custom markup
+
 Planned:
 
-- **Combobox** with list and inline autocomplete, async options and correct IME handling
 - **Date picker** dialog with a keyboard-operable calendar grid and locale-aware week start
 - Controlled and uncontrolled state everywhere; hooks for custom markup, components for the rest
 - Server rendering without hydration warnings
@@ -112,7 +120,8 @@ The reasoning behind these choices is recorded in [Architecture Decision Records
 [own virtualiser](docs/adr/0004-own-virtualiser.md),
 [sorting with radix sort](docs/adr/0005-sorting-with-rank-permutations.md),
 [focus and keyboard model](docs/adr/0006-grid-focus-and-keyboard-model.md),
-[header controls, filtering and resizing](docs/adr/0007-header-controls-filtering-and-resizing.md).
+[header controls, filtering and resizing](docs/adr/0007-header-controls-filtering-and-resizing.md),
+[combobox](docs/adr/0008-combobox.md).
 
 ## Performance
 
@@ -240,6 +249,25 @@ Things that took longer than expected so far, and what they changed.
   closed the open dialog (light dismiss on pointer down) and then the click opened it again. The
   dialog uses `popover="manual"` and its own outside-press handling, which ignores its header.
   ([ADR 7](docs/adr/0007-header-controls-filtering-and-resizing.md))
+- **One Escape key, two widgets.** The grid's filter dialog closes on Escape, and the combobox
+  inside it closes its list on Escape. Both listen to the same key event, so one press would have
+  closed the list and the dialog. Controls now mark keys they handle (`preventDefault`), the dialog
+  ignores handled keys, and a test presses Escape twice and checks that only the second press
+  closes the dialog. ([ADR 8](docs/adr/0008-combobox.md))
+- **A loading flag that raced its request.** The first version set "loading" at the start of the
+  effect that fetches server options, which React's lint rules reject (a synchronous state update
+  in an effect causes an extra render) and which can show "loading" for a result that has already
+  arrived. Loading is now derived: the last result remembers its query, and the list is loading
+  while that query differs from the typed text. Late answers to older queries are ignored for the
+  same reason.
+- **Firefox found two problems the other engines did not.** The first CI run in Firefox and WebKit
+  failed twice in Firefox. Tab from the combobox landed in the list, because Firefox makes a
+  scrollable element without focusable children a tab stop; the list now has `tabindex="-1"`. The
+  form reset test also failed, and a first fix based on a guess did not help. A trace in CI showed
+  that the reset button was never clicked: the test before it submitted an empty required field,
+  and Firefox's validation bubble, which is browser UI, swallowed the next click. The reset itself
+  worked; the validation test now checks `checkValidity()` instead of clicking submit, and the
+  guessed workaround was removed again.
 - **`format` was called with `null`.** A filter test crashed in `toFixed()`, because the grid
   passed empty values to the column's `format`. Empty values now always render as empty cells and
   `format` receives only non-empty values, which its type says.

@@ -1,0 +1,126 @@
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+import * as ComboboxStories from "./Combobox.stories.tsx";
+
+<Meta of={ComboboxStories} />
+
+# Combobox
+
+An editable combobox with a list of options, following the
+[WAI-ARIA combobox pattern](https://www.w3.org/WAI/ARIA/apg/patterns/combobox/). Type to filter,
+use the arrow keys to choose, Enter to select.
+
+<Canvas of={ComboboxStories.Basic} />
+
+```tsx
+import { Combobox, type ComboboxOption } from "@tabellwerk/react";
+import "@tabellwerk/react/styles.css";
+
+const zones: ComboboxOption[] = [
+  { value: "DE-LU", label: "Germany-Luxembourg" },
+  { value: "FR", label: "France" },
+];
+
+export function ZonePicker({ onZone }: { onZone: (zone: string | null) => void }) {
+  return <Combobox label="Bidding zone" options={zones} onChange={onZone} />;
+}
+```
+
+## Keyboard
+
+Focus stays in the text field; the option with visual focus is referenced with
+`aria-activedescendant`. The toggle button is not a tab stop.
+
+| Key                                                       | Action                                                                               |
+| --------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| Typing                                                    | Opens the list and filters it; with `autocomplete="both"`, completes the first match |
+| <kbd>↓</kbd>                                              | Opens the list on the first (or the selected) option; next option, wraps             |
+| <kbd>↑</kbd>                                              | Opens the list on the last (or the selected) option; previous option, wraps          |
+| <kbd>Alt</kbd>+<kbd>↓</kbd> / <kbd>Alt</kbd>+<kbd>↑</kbd> | Opens the list without moving / closes it                                            |
+| <kbd>Enter</kbd>                                          | Selects the option and closes; with `multiple`, adds or removes it and stays open    |
+| <kbd>Enter</kbd> with the list closed                     | Submits the form                                                                     |
+| <kbd>Escape</kbd>                                         | Closes the list; with the list closed, clears the field                              |
+| <kbd>Tab</kbd>                                            | Selects the option with visual focus (single) and moves on                           |
+| <kbd>Home</kbd> / <kbd>End</kbd>                          | Move the text cursor; visual focus returns to the field                              |
+| <kbd>Backspace</kbd> in an empty field (`multiple`)       | Removes the last selected value                                                      |
+
+Every row of this table has an interaction test that presses the real keys, in Chromium, Firefox
+and WebKit.
+
+## Matching
+
+Typing matches anywhere in the label (`filter="startsWith"` for prefixes, or a function), ignoring
+case and diacritics: "zurich" finds "Zürich", "lodz" finds "Łódź".
+
+<Canvas of={ComboboxStories.AccentInsensitive} />
+
+With `autocomplete="both"`, the first option that starts with the typed text is completed in the
+field. The completed part is selected, so typing on replaces it and Backspace removes it without
+completing again.
+
+<Canvas of={ComboboxStories.InlineAutocomplete} />
+
+Leaving the field accepts typed text that names an option ("france" selects France) and otherwise
+returns to the selected option. An empty field clears the value.
+
+## Input methods (IME)
+
+While an input method composes text (Japanese, Chinese, Korean and others), the uncommitted text is
+shown but does not filter the list or trigger completion, and keys go to the input method. The list
+filters when the composition is committed. A test drives a real composition through the browser's
+input pipeline.
+
+## Groups and long lists
+
+Options with a `group` are listed under headings in `role="group"` elements, and the arrow keys
+follow the order on screen.
+
+<Canvas of={ComboboxStories.Groups} />
+
+Lists with more than 100 options (and no groups) render only the options in view. Every rendered
+option carries `aria-setsize` and `aria-posinset`, so screen readers say "Station 4,321, 4,321 of
+5,000".
+
+<Canvas of={ComboboxStories.LongList} />
+
+## Options from a server
+
+`loadOptions(query, { signal })` loads options for the typed text, `loadDelay` milliseconds (default 250) after the last key press. Older requests are aborted through the signal, and late answers to
+them are ignored. The list says when it is loading, when nothing matched and when loading failed;
+the number of results is announced to screen readers.
+
+```tsx
+<Combobox
+  label="Bidding zone"
+  loadOptions={async (query, { signal }) => {
+    const response = await fetch(`/api/zones?q=${encodeURIComponent(query)}`, { signal });
+    return response.json();
+  }}
+/>
+```
+
+<Canvas of={ComboboxStories.Async} />
+
+## Several values
+
+With `multiple`, Enter adds or removes the option and the list stays open. Selected values are shown
+as chips with remove buttons above the field, and each addition and removal is announced. The value
+is an array.
+
+<Canvas of={ComboboxStories.Multiple} />
+
+## Forms
+
+`name` submits the selected value (several fields with the same name for `multiple`). `required`
+blocks submission while nothing is selected, with the browser's own validation message. A form reset
+restores `defaultValue`. `description` and `error` are linked with `aria-describedby`; an error also
+sets `aria-invalid`.
+
+<Canvas of={ComboboxStories.InForm} />
+
+## Headless
+
+`useCombobox()` returns the state and props for the input and the options, for your own markup.
+
+## Props
+
+<ArgTypes of={ComboboxStories} />
