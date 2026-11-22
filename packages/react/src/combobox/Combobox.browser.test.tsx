@@ -362,39 +362,24 @@ describe("Combobox in forms", () => {
   });
 
   it("blocks submission while a required combobox is empty", async () => {
-    const submitted: Record<string, unknown>[] = [];
-    const screen = await render(<Form onSubmit={(data) => submitted.push(data)} />);
+    await render(<Form onSubmit={() => {}} />);
     await userEvent.keyboard("{Tab}{Escape}");
     expect(input().value).toBe("");
-    await screen.getByRole("button", { name: "Submit" }).click();
-    expect(submitted).toEqual([]);
+    // checkValidity() is what submission runs first. A real submit click
+    // would also show the browser's validation bubble, which in Firefox is
+    // browser UI that swallows the next click (in the next test).
+    expect(input().form!.checkValidity()).toBe(false);
+    expect(input().validity.customError).toBe(true);
     expect(input().validationMessage).toBe("Select an option from the list.");
+    await userEvent.keyboard("{ArrowDown}{Enter}");
+    expect(input().form!.checkValidity()).toBe(true);
   });
 
   it("form reset restores the default value", async () => {
     const screen = await render(<Form onSubmit={() => {}} />);
-    // TEMPORARY trace for a Firefox-only failure; removed once understood.
-    const trace: string[] = [];
-    const snap = (label: string) =>
-      trace.push(
-        `${label}: value=${input().value} attr=${input().getAttribute("value")} active=${document.activeElement?.tagName}/${document.activeElement?.getAttribute("role") ?? ""}`,
-      );
-    snap("start");
-    input().form!.addEventListener("reset", () => snap("reset event"));
-    await userEvent.keyboard("{Tab}");
-    snap("after Tab");
-    await userEvent.keyboard("{ArrowDown}");
-    snap("after ArrowDown");
-    await userEvent.keyboard("{ArrowUp}");
-    snap("after ArrowUp");
-    await userEvent.keyboard("{Enter}");
-    snap("after Enter");
-    expect(input().value).not.toBe("Netherlands");
+    await userEvent.keyboard("{Tab}{ArrowDown}{ArrowUp}{Enter}");
+    expect(input().value).toBe("France");
     await screen.getByRole("button", { name: "Reset" }).click();
-    snap("after click");
-    await new Promise((r) => setTimeout(r, 200));
-    snap("after 200 ms");
-    console.log(`RESET-TRACE\n${trace.join("\n")}`);
     await expect.poll(() => input().value).toBe("Netherlands");
   });
 });
