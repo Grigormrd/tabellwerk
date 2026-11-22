@@ -120,6 +120,9 @@ function Listbox({ state }: { state: ComboboxState }): JSX.Element {
     role: "listbox" as const,
     "aria-labelledby": state.ids.label,
     "aria-multiselectable": state.multiple || undefined,
+    // Firefox makes scroll containers without focusable children tab stops;
+    // Tab from the input would land in the list and lose focus when it closes.
+    tabIndex: -1,
     className: "tbw-combobox__listbox",
   };
 
@@ -272,6 +275,16 @@ function ComboboxInner(props: ComboboxProps): JSX.Element {
       for (const value of state.selected) if (!values.includes(value)) remove(value);
       for (const value of values) {
         if (!state.selected.includes(value)) select({ value, label: state.labelOf(value) });
+      }
+      // The browser resets the text field to its value attribute, which may
+      // still hold the previous label when that happens after this update
+      // (seen in Firefox). Make the field show the restored value either way.
+      if (!state.multiple) {
+        const expected = values[0] === undefined ? "" : state.labelOf(values[0]);
+        requestAnimationFrame(() => {
+          const input = inputRef.current;
+          if (input && input.value !== expected) input.value = expected;
+        });
       }
     };
   });
