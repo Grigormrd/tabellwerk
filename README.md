@@ -260,6 +260,14 @@ Things that took longer than expected so far, and what they changed.
   arrived. Loading is now derived: the last result remembers its query, and the list is loading
   while that query differs from the typed text. Late answers to older queries are ignored for the
   same reason.
+- **Firefox found two problems the other engines did not.** The first CI run in Firefox and WebKit
+  failed twice in Firefox. Tab from the combobox landed in the list, because Firefox makes a
+  scrollable element without focusable children a tab stop; the list now has `tabindex="-1"`. The
+  form reset test also failed, and a first fix based on a guess did not help. A trace in CI showed
+  that the reset button was never clicked: the test before it submitted an empty required field,
+  and Firefox's validation bubble, which is browser UI, swallowed the next click. The reset itself
+  worked; the validation test now checks `checkValidity()` instead of clicking submit, and the
+  guessed workaround was removed again.
 - **`format` was called with `null`.** A filter test crashed in `toFixed()`, because the grid
   passed empty values to the column's `format`. Empty values now always render as empty cells and
   `format` receives only non-empty values, which its type says.
