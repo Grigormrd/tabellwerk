@@ -76,9 +76,9 @@ the date picker for the period and the combobox for the series.
 
 Done when:
 
-- [ ] The demo builds against the built packages
-- [ ] End-to-end tests against the production build with recorded data
-- [ ] Data source decided in an ADR
+- [x] The demo builds against the built packages (resolved through the package exports, tested)
+- [x] End-to-end tests against the production build with recorded data (incl. axe; CI, #9)
+- [x] Data source decided in an ADR ([ADR 10](adr/0010-demo-data-source.md))
 - [ ] Deployed (after approval) and checked live; Lighthouse measured on the production build
 
 ## Phase 6: Release and documentation

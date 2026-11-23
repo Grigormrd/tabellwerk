@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Every hour of the German electricity market since 2015, from SMARD, in an accessible React data grid built with Tabellwerk."
+    />
+    <meta name="color-scheme" content="light dark" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link
+      rel="preload"
+      href="/data/smard-hourly.json"
+      as="fetch"
+      type="application/json"
+      crossorigin="anonymous"
+    />
+    <title>Electricity market, hour by hour · Tabellwerk demo</title>
+    <script>
+      // Apply a stored theme before the first paint (see src/ThemeSelect.tsx).
+      try {
+        var theme = localStorage.getItem("tabellwerk-demo-theme");
+        if (theme === "light" || theme === "dark") {
+          document.documentElement.setAttribute("data-tbw-theme", theme);
+        }
+      } catch (error) {}
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

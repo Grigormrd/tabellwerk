@@ -1,0 +1,222 @@
+/* Page styles of the demo. Everything comes from the library's tokens, so the
+   page follows the same light, dark and forced-colours themes as the grid. */
+
+:root {
+  color-scheme: light dark;
+}
+
+:root[data-tbw-theme="light"] {
+  color-scheme: light;
+}
+
+:root[data-tbw-theme="dark"] {
+  color-scheme: dark;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--tbw-color-bg);
+  color: var(--tbw-color-text);
+  font-family: var(--tbw-font-family-sans);
+  font-size: var(--tbw-font-size-md);
+  line-height: var(--tbw-font-line-height-normal);
+}
+
+a {
+  color: var(--tbw-color-accent);
+  text-underline-offset: 0.15em;
+}
+
+a:focus-visible,
+select:focus-visible,
+.demo-button:focus-visible {
+  outline: var(--tbw-size-focus-ring) solid var(--tbw-color-focus);
+  outline-offset: var(--tbw-size-focus-offset);
+}
+
+.demo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tbw-space-6);
+  max-width: 90rem;
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: var(--tbw-space-6) var(--tbw-space-4);
+}
+
+.demo-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--tbw-space-4) var(--tbw-space-8);
+}
+
+.demo-header__text {
+  max-width: 46rem;
+}
+
+.demo-eyebrow {
+  margin: 0 0 var(--tbw-space-1);
+  color: var(--tbw-color-text-muted);
+  font-size: var(--tbw-font-size-sm);
+  font-weight: var(--tbw-font-weight-semibold);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.demo h1 {
+  margin: 0;
+  font-size: clamp(1.5rem, 1.1rem + 1.6vw, 2.125rem);
+  line-height: var(--tbw-font-line-height-tight);
+  text-wrap: balance;
+}
+
+.demo-lede {
+  margin: var(--tbw-space-3) 0 0;
+  color: var(--tbw-color-text-muted);
+  font-size: var(--tbw-font-size-lg);
+  text-wrap: pretty;
+}
+
+.demo-nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--tbw-space-2) var(--tbw-space-4);
+}
+
+.demo-theme {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--tbw-space-2);
+}
+
+.demo-theme select {
+  min-height: var(--tbw-size-control);
+  padding: 0 var(--tbw-space-2);
+  border: 1px solid var(--tbw-color-border-strong);
+  border-radius: var(--tbw-radius-md);
+  background: var(--tbw-color-bg);
+  color: var(--tbw-color-text);
+  font: inherit;
+}
+
+.demo-main {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--tbw-space-3);
+}
+
+.demo-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--tbw-space-4) var(--tbw-space-8);
+  padding: var(--tbw-space-4);
+  border: 1px solid var(--tbw-color-border);
+  border-radius: var(--tbw-radius-md);
+  background: var(--tbw-color-surface);
+}
+
+.demo-period {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--tbw-space-3) var(--tbw-space-4);
+}
+
+.demo-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--tbw-space-2);
+}
+
+.demo-series {
+  flex: 1 1 22rem;
+  max-width: 40rem;
+}
+
+.demo-button {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tbw-size-control);
+  padding: 0 var(--tbw-space-3);
+  border: 1px solid var(--tbw-color-border-strong);
+  border-radius: var(--tbw-radius-md);
+  background: var(--tbw-color-bg);
+  color: var(--tbw-color-text);
+  font: inherit;
+  cursor: pointer;
+}
+
+.demo-button:hover {
+  background: var(--tbw-color-surface-hover);
+}
+
+.demo-button[aria-pressed="true"] {
+  border-color: var(--tbw-color-accent);
+  background: var(--tbw-color-accent);
+  color: var(--tbw-color-accent-text);
+}
+
+.demo-summary {
+  margin: 0;
+  color: var(--tbw-color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* A definite height, never `flex: 1`: in a column without a fixed height the
+   flex basis falls back to the content, which for 104,000 rows is 3.7 million
+   pixels, and the grid would render every row. */
+.demo-grid {
+  block-size: clamp(24rem, 70vh, 56rem);
+}
+
+.demo-message {
+  margin: 0;
+  padding: var(--tbw-space-6) var(--tbw-space-4);
+  border: 1px solid var(--tbw-color-border);
+  border-radius: var(--tbw-radius-md);
+  background: var(--tbw-color-surface);
+  color: var(--tbw-color-text-muted);
+}
+
+.demo-message--error {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--tbw-space-3);
+  border-color: var(--tbw-color-danger);
+  color: var(--tbw-color-text);
+}
+
+.demo-message--error p {
+  margin: 0;
+}
+
+.demo-footer {
+  color: var(--tbw-color-text-muted);
+  font-size: var(--tbw-font-size-sm);
+}
+
+.demo-footer p {
+  max-width: 60rem;
+  margin: 0;
+}
+
+@media (forced-colors: active) {
+  .demo-button[aria-pressed="true"] {
+    border-color: Highlight;
+    background: Highlight;
+    color: HighlightText;
+  }
+}

@@ -25,3 +25,6 @@ Thumbs.db
 .idea/
 *.log
 .vitest/
+
+# demo: SMARD download cache
+apps/demo/.smard-cache/
