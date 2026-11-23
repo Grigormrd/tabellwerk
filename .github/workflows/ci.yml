@@ -68,6 +68,36 @@ jobs:
           path: packages/react/playwright-report
           retention-days: 7
 
+  demo:
+    name: Demo (end-to-end and axe on the production build)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm --filter demo exec playwright install --with-deps chromium
+
+      # Builds the packages first, then the demo against their dist files.
+      - run: pnpm turbo run build --filter=demo
+
+      - run: pnpm demo:e2e
+
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: demo-report
+          path: apps/demo/playwright-report
+          retention-days: 7
+
   visual:
     name: Visual regression
     runs-on: ubuntu-latest

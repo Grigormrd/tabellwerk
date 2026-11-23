@@ -10,8 +10,18 @@ keyboard tables, all stories in light and dark; try the
 [100,000-row grid](https://tabellwerk.vercel.app/?path=/story/components-datagrid--hundred-thousand-rows))
 
 > **Status: under construction.** The data grid (100,000 rows: navigation, sorting, filters,
-> column widths), the combobox and the date picker are done (Phases 1 to 4). The demo application
-> and the first release follow in the [roadmap](docs/ROADMAP.md). Nothing is published to npm yet.
+> column widths), the combobox, the date picker (Phases 1 to 4) and the demo application (Phase 5)
+> are done. The first release follows in the [roadmap](docs/ROADMAP.md). Nothing is published to
+> npm yet.
+
+## Demo
+
+[`apps/demo`](apps/demo) shows the library with real data: **every hour of the German electricity
+market since 1 January 2015**, 104,256 rows of day-ahead prices, load and generation by source from
+[SMARD](https://www.smard.de) (Bundesnetzagentur | SMARD.de, CC BY 4.0). Two date pickers choose the
+period, a combobox chooses the series (one column each), and the grid sorts, filters and resizes all
+of it. The data is a recording committed with the app, so it works without any server of ours and
+its tests need no network ([ADR 10](docs/adr/0010-demo-data-source.md)).
 
 ## Packages
 
@@ -75,7 +85,7 @@ const columns: ColumnDef<Price>[] = [
 
 Planned:
 
-- A demo application with German electricity market data, and the first npm release
+- The first npm release
 
 ## Tech stack
 
@@ -132,7 +142,8 @@ The reasoning behind these choices is recorded in [Architecture Decision Records
 [focus and keyboard model](docs/adr/0006-grid-focus-and-keyboard-model.md),
 [header controls, filtering and resizing](docs/adr/0007-header-controls-filtering-and-resizing.md),
 [combobox](docs/adr/0008-combobox.md),
-[date picker](docs/adr/0009-date-picker.md).
+[date picker](docs/adr/0009-date-picker.md),
+[demo data source](docs/adr/0010-demo-data-source.md).
 
 ## Performance
 
@@ -168,6 +179,10 @@ packages/
   react/      @tabellwerk/react: components, stories, tests, Storybook config
     e2e/      Playwright: axe and visual regression on the Storybook build
     etc/      API report (public API, reviewed in every pull request)
+apps/
+  demo/       Vite app with SMARD data; uses the built packages like an installed dependency
+    scripts/  records the SMARD data into public/data
+    e2e/      Playwright: behaviour and axe on the production build
 scripts/      static file server for tests, visual tests in Docker
 docs/
   adr/        Architecture Decision Records
@@ -183,6 +198,7 @@ pnpm install
 pnpm --filter @tabellwerk/react exec playwright install chromium   # once
 pnpm build
 pnpm storybook        # http://localhost:6006
+pnpm demo             # http://localhost:5173
 ```
 
 ## Scripts
@@ -193,6 +209,8 @@ pnpm storybook        # http://localhost:6006
 | `pnpm storybook`     | Storybook in development mode                                                       |
 | `pnpm build:docs`    | Static Storybook build in `packages/react/storybook-static`                         |
 | `pnpm e2e`           | axe on every story in light, dark and forced colours (needs `build:docs`)           |
+| `pnpm demo`          | Demo application in development mode                                                |
+| `pnpm demo:e2e`      | End-to-end and axe tests on the demo's production build (needs `pnpm build`)        |
 | `pnpm visual:update` | Record visual baselines in the Playwright Docker image                              |
 | `pnpm perf`          | Performance measurements and budgets (needs `build:docs`)                           |
 | `pnpm changeset`     | Describe a change for the changelog                                                 |
@@ -219,6 +237,7 @@ Tests run where the code runs ([ADR 3](docs/adr/0003-testing-strategy.md)):
 | Visual regression | Playwright in Docker                            | Screenshot of every story in light and dark, compared pixel by pixel          |
 | Package           | publint, attw, size-limit, API Extractor        | Exports, type resolution, size per entry point, unintended public API changes |
 | Performance       | Playwright, Event Timing, Long Animation Frames | Interaction and scroll budgets on 100,000 rows; render counts per key press   |
+| Demo              | Vitest, Playwright + axe-core                   | Data decoding incl. clock changes; the production build with recorded data    |
 
 ## What was hard
 
@@ -285,6 +304,11 @@ Things that took longer than expected so far, and what they changed.
   `<dialog>`, and `showModal()` then focused the first button in it. The date picker now moves focus
   to the day right after `showModal()`, and a test checks the focused date after opening.
   ([ADR 9](docs/adr/0009-date-picker.md))
+- **A grid that rendered all 104,256 rows.** The first demo build froze the tab. The grid was a
+  `flex: 1` item in a column without a fixed height, where the flex basis falls back to the
+  content: 3.7 million pixels of rows. The virtualiser measured that as its viewport and rendered
+  every row. A paused debugger showed React creating DOM nodes; the grid now has a definite height,
+  as its documentation asks, and the stylesheet comment says why.
 - **`format` was called with `null`.** A filter test crashed in `toFixed()`, because the grid
   passed empty values to the column's `format`. Empty values now always render as empty cells and
   `format` receives only non-empty values, which its type says.

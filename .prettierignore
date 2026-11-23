@@ -8,3 +8,5 @@ test-results
 **/__screenshots__
 **/*.api.md
 CHANGELOG.md
+apps/demo/public/data
+apps/demo/.smard-cache
