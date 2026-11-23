@@ -241,32 +241,50 @@ const TIME_COLUMN: ColumnDef<HourRow> = {
   width: 100,
 };
 
-const seriesColumns = new Map<SeriesId, ColumnDef<HourRow>>(
-  SERIES_IDS.map((id) => {
-    const definition: SeriesDefinition = SERIES[id];
-    const { label, header, unit, decimals } = definition;
-    const text = `${header ?? label} (${unit})`;
-    return [
-      id,
-      {
-        id,
+/**
+ * Width of a header text in the page font (semibold, like the grid header).
+ * Measured, because system-ui differs between platforms: a fixed width per
+ * character cut headers off on one machine and wasted space on another.
+ */
+function headerTextWidth(text: string): number {
+  const context = document.createElement("canvas").getContext("2d");
+  if (!context) return text.length * 8;
+  const { fontSize, fontFamily } = getComputedStyle(document.body);
+  context.font = `600 ${fontSize} ${fontFamily}`;
+  return context.measureText(text).width;
+}
+
+/**
+ * Header padding (2 × 12 px), gaps, the filter button (24 px) and the sort
+ * arrow with its position number (about 24 px), plus a little air.
+ */
+const HEADER_CHROME = 88;
+
+let seriesColumns: Map<SeriesId, ColumnDef<HourRow>> | undefined;
+
+/** Built on first use, in the browser, once the stylesheet applies. */
+function seriesColumn(id: SeriesId): ColumnDef<HourRow> {
+  seriesColumns ??= new Map(
+    SERIES_IDS.map((seriesId) => {
+      const definition: SeriesDefinition = SERIES[seriesId];
+      const { label, header, unit, decimals } = definition;
+      const text = `${header ?? label} (${unit})`;
+      const column: ColumnDef<HourRow> = {
+        id: seriesId,
         header: text,
         filter: "number",
         align: "end",
-        // Room for the header text, the sort arrow and the filter button.
-        width: Math.max(130, Math.round(text.length * 6.8 + 60)),
+        width: Math.ceil(headerTextWidth(text) + HEADER_CHROME),
         format: (value) => formatNumber(value as number, decimals),
-      },
-    ];
-  }),
-);
+      };
+      return [seriesId, column];
+    }),
+  );
+  return seriesColumns.get(id) as ColumnDef<HourRow>;
+}
 
 /** Columns in a fixed order, whatever order the series were picked in. */
 function buildColumns(selected: readonly SeriesId[]): ColumnDef<HourRow>[] {
   const chosen = SERIES_IDS.filter((id) => selected.includes(id));
-  return [
-    DAY_COLUMN,
-    TIME_COLUMN,
-    ...chosen.map((id) => seriesColumns.get(id) as ColumnDef<HourRow>),
-  ];
+  return [DAY_COLUMN, TIME_COLUMN, ...chosen.map(seriesColumn)];
 }
