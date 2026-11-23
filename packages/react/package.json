@@ -20,6 +20,10 @@
       "types": "./dist/data-grid.d.ts",
       "default": "./dist/data-grid.js"
     },
+    "./date-picker": {
+      "types": "./dist/date-picker.d.ts",
+      "default": "./dist/date-picker.js"
+    },
     "./live-announcer": {
       "types": "./dist/live-announcer.d.ts",
       "default": "./dist/live-announcer.js"

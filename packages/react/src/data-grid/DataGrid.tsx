@@ -72,6 +72,8 @@ export interface DataGridProps<Row> {
   overscan?: number;
   /** Texts for translation. */
   messages?: DataGridMessagesInput;
+  /** Locale of the date pickers in `"date"` filters (input format, first day of the week). */
+  locale?: string;
   /** Class name on the scroll container. Set its height here or with `style`. */
   className?: string;
   /** Inline styles of the scroll container. */
@@ -685,6 +687,7 @@ function GridInner<Row>(props: DataGridProps<Row>): JSX.Element {
           messages={messages}
           onChange={(filter) => changeFilter(openColumn.id, filter)}
           onClose={closeFilter}
+          {...(props.locale !== undefined && { locale: props.locale })}
         />
       )}
     </>

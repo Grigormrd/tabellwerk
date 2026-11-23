@@ -10,8 +10,8 @@ keyboard tables, all stories in light and dark; try the
 [100,000-row grid](https://tabellwerk.vercel.app/?path=/story/components-datagrid--hundred-thousand-rows))
 
 > **Status: under construction.** The data grid (100,000 rows: navigation, sorting, filters,
-> column widths) and the combobox are done (Phases 1 to 3). The date picker follows in the
-> [roadmap](docs/ROADMAP.md). Nothing is published to npm yet.
+> column widths), the combobox and the date picker are done (Phases 1 to 4). The demo application
+> and the first release follow in the [roadmap](docs/ROADMAP.md). Nothing is published to npm yet.
 
 ## Packages
 
@@ -61,11 +61,21 @@ const columns: ColumnDef<Price>[] = [
   - several values as removable chips; forms: `name`, `required` with native validation, reset
   - tested with real keys in Chromium, Firefox and WebKit; `useCombobox()` for custom markup
 
+- **`DatePicker`** following the WAI-ARIA date picker dialog pattern:
+  - values are ISO date strings (`"2026-11-23"`), never `Date` objects: no time zone or daylight
+    saving change can shift a day
+  - modal calendar dialog (`showModal()`): focus on the selected date or today, arrows by day and
+    week, Page Up/Down by month, Shift by year, focus returns to the button
+  - the locale sets input format, names and first day of the week; typed dates are read in the
+    locale's order ("03/04" is 3 April in German, 4 March in US English)
+  - `min`, `max` and unavailable days; forms with `name`, `required` and reset; `Calendar` and
+    `useCalendar()` on their own
+- The grid's filters use the library's own widgets: the combobox for values, the date picker for
+  date ranges
+
 Planned:
 
-- **Date picker** dialog with a keyboard-operable calendar grid and locale-aware week start
-- Controlled and uncontrolled state everywhere; hooks for custom markup, components for the rest
-- Server rendering without hydration warnings
+- A demo application with German electricity market data, and the first npm release
 
 ## Tech stack
 
@@ -121,7 +131,8 @@ The reasoning behind these choices is recorded in [Architecture Decision Records
 [sorting with radix sort](docs/adr/0005-sorting-with-rank-permutations.md),
 [focus and keyboard model](docs/adr/0006-grid-focus-and-keyboard-model.md),
 [header controls, filtering and resizing](docs/adr/0007-header-controls-filtering-and-resizing.md),
-[combobox](docs/adr/0008-combobox.md).
+[combobox](docs/adr/0008-combobox.md),
+[date picker](docs/adr/0009-date-picker.md).
 
 ## Performance
 
@@ -268,6 +279,12 @@ Things that took longer than expected so far, and what they changed.
   and Firefox's validation bubble, which is browser UI, swallowed the next click. The reset itself
   worked; the validation test now checks `checkValidity()` instead of clicking submit, and the
   guessed workaround was removed again.
+- **Focus that landed on the wrong button.** The date picker's calendar is meant to open with
+  focus on the selected date. The screenshot showed it on "Previous month": React runs a child's
+  effects before its parent's, so the calendar focused its day before the parent had opened the
+  `<dialog>`, and `showModal()` then focused the first button in it. The date picker now moves focus
+  to the day right after `showModal()`, and a test checks the focused date after opening.
+  ([ADR 9](docs/adr/0009-date-picker.md))
 - **`format` was called with `null`.** A filter test crashed in `toFixed()`, because the grid
   passed empty values to the column's `format`. Empty values now always render as empty cells and
   `format` receives only non-empty values, which its type says.

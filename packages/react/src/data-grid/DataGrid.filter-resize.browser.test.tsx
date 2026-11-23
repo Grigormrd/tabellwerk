@@ -104,14 +104,35 @@ describe("DataGrid filtering", () => {
     expect(prices.every((p) => p >= 100 && p <= 120)).toBe(true);
   });
 
-  it("date filter: from and to, as UTC calendar dates", async () => {
-    const screen = await render(<Harness />);
+  it("date filter: typed dates in the grid's locale, as UTC calendar dates", async () => {
+    const screen = await render(<Harness locale="de-DE" />);
     await screen.getByRole("button", { name: "Filter Time (UTC)" }).click();
-    await screen.getByLabelText("From").fill("2023-01-02");
-    await screen.getByLabelText("To").fill("2023-01-02");
+    // The date pickers read the locale's format; focus starts in "From".
+    await expect.element(screen.getByRole("textbox", { name: "From" })).toHaveFocus();
+    await userEvent.keyboard("02.01.2023{Tab}{Tab}02.01.2023{Tab}");
     // 300 quarter-hours from 2023-01-01 00:00 UTC: 96 of them on 2 January.
     await expect.poll(() => rowCount()).toBe(96);
     expect(columnTexts("time").every((t) => t.startsWith("2023-01-02"))).toBe(true);
+  });
+
+  it("date filter: the calendar picks a day, Escape closes only the calendar", async () => {
+    const screen = await render(
+      <Harness locale="de-DE" defaultFilters={{ time: { kind: "date", from: "2023-01-02" } }} />,
+    );
+    await screen.getByRole("button", { name: "Filter Time (UTC)" }).click();
+    await screen.getByRole("button", { name: /^Change date/ }).click();
+    expect(document.querySelector<HTMLDialogElement>("dialog")!.open).toBe(true);
+    await userEvent.keyboard("{Escape}");
+    expect(document.querySelector<HTMLDialogElement>("dialog")!.open).toBe(false);
+    expect(dialog()).not.toBeNull(); // the filter dialog stays open
+    // "To" cannot be earlier than "From".
+    await screen.getByRole("textbox", { name: "To" }).click();
+    await userEvent.keyboard("01.01.2023{Tab}");
+    await expect.element(screen.getByText("Choose 02.01.2023 or later.")).toBeVisible();
+    await screen.getByRole("textbox", { name: "To" }).click();
+    await userEvent.keyboard("{Control>}a{/Control}03.01.2023{Tab}");
+    // 2 and 3 January within the first 300 quarter-hours.
+    await expect.poll(() => rowCount()).toBe(192);
   });
 
   it("removing the last value or Clear filter shows every row again", async () => {

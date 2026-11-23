@@ -1,0 +1,97 @@
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+import * as DatePickerStories from "./DatePicker.stories.tsx";
+
+<Meta of={DatePickerStories} />
+
+# DatePicker
+
+A date field with a calendar dialog, following the
+[WAI-ARIA date picker dialog pattern](https://www.w3.org/WAI/ARIA/apg/patterns/dialog-modal/examples/datepicker-dialog/).
+Values are ISO calendar dates (`"2026-11-23"`), never `Date` objects, so no time zone can move a
+day.
+
+<Canvas of={DatePickerStories.Basic} />
+
+```tsx
+import { DatePicker } from "@tabellwerk/react";
+import "@tabellwerk/react/styles.css";
+
+export function DeliveryDay({ onDay }: { onDay: (day: string | null) => void }) {
+  return <DatePicker label="Delivery day" locale="de-DE" min="2026-11-23" onChange={onDay} />;
+}
+```
+
+## Keyboard
+
+In the text field, type a date or press <kbd>Alt</kbd>+<kbd>↓</kbd> to open the calendar; the
+button next to the field opens it too. Focus moves to the selected date, or to today.
+
+| Key                                                        | Action in the calendar                                              |
+| ---------------------------------------------------------- | ------------------------------------------------------------------- |
+| <kbd>←</kbd> / <kbd>→</kbd>                                | Previous / next day, across months                                  |
+| <kbd>↑</kbd> / <kbd>↓</kbd>                                | Same day in the previous / next week                                |
+| <kbd>Home</kbd> / <kbd>End</kbd>                           | First / last day of the week (by locale)                            |
+| <kbd>Page Up</kbd> / <kbd>Page Down</kbd>                  | Same day in the previous / next month (31 January → 28 February)    |
+| <kbd>Shift</kbd>+<kbd>Page Up</kbd> / <kbd>Page Down</kbd> | Same day in the previous / next year                                |
+| <kbd>Enter</kbd> or <kbd>Space</kbd>                       | Select the date, close, focus returns to the button                 |
+| <kbd>Escape</kbd>                                          | Close without a change, focus returns to the button                 |
+| <kbd>Tab</kbd> / <kbd>Shift</kbd>+<kbd>Tab</kbd>           | Previous month, next month, the day grid; focus stays in the dialog |
+| <kbd>Alt</kbd>+<kbd>↓</kbd> in the text field              | Open the calendar                                                   |
+
+Every row of this table has an interaction test that presses the real keys, in Chromium, Firefox
+and WebKit.
+
+## Locales
+
+`locale` sets the input format, the names and the first day of the week (from
+`Intl.Locale#getWeekInfo`, with CLDR data as fallback). German uses day.month.year and starts on
+Monday, US English month/day/year and starts on Sunday. `firstDayOfWeek` overrides the week start.
+
+<Canvas of={DatePickerStories.German} />
+
+<Canvas of={DatePickerStories.USEnglish} />
+
+## Typing
+
+The field reads the locale's order with any separator ("23.11.2026", "23/11/26" and "23 11 2026"
+in German), two-digit years as 2000–2099, and always ISO dates. On leaving the field or pressing
+Enter, a valid date is selected and shown in the locale's format; anything else is reported next to
+the field (and blocks form submission) while the previous value is kept. An empty field clears the
+value.
+
+<Canvas of={DatePickerStories.InvalidInput} />
+
+## Limits
+
+`min` and `max` limit the range: the calendar does not move past them and the month buttons are
+disabled at the edges. `isDateUnavailable` blocks single days, which are shown crossed out and with
+`aria-disabled`, and can still be focused.
+
+<Canvas of={DatePickerStories.Limits} />
+
+## Screen readers
+
+- The dialog is modal (`showModal()`), named by the month heading, and the rest of the page is
+  inert while it is open.
+- Every day is named with its full date ("Monday, 23 November 2026"); today has
+  `aria-current="date"`, the selected day `aria-selected="true"`.
+- The month heading is a polite live region, so moving into another month is announced.
+- The format hint and errors are linked to the field with `aria-describedby`.
+
+## Forms
+
+`name` submits the ISO date. `required` blocks submission while no valid date is entered, with the
+browser's own validation. A form reset restores `defaultValue`.
+
+<Canvas of={DatePickerStories.InForm} />
+
+## Calendar on its own
+
+`Calendar` is the month grid from the dialog, usable on its own; `useCalendar()` provides the
+navigation without markup.
+
+<Canvas of={DatePickerStories.InlineCalendar} />
+
+## Props
+
+<ArgTypes of={DatePickerStories} />

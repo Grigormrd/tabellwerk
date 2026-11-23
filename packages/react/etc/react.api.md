@@ -15,11 +15,54 @@ import { MouseEvent as MouseEvent_2 } from 'react';
 import { ReactNode } from 'react';
 
 // @public
+export function addDays(date: PlainDate, days: number): PlainDate;
+
+// @public
+export function addMonths(date: PlainDate, months: number): PlainDate;
+
+// @public
+export function addYears(date: PlainDate, years: number): PlainDate;
+
+// @public
 export type Announce = (message: string, options?: AnnounceOptions) => void;
 
 // @public
 export interface AnnounceOptions {
     politeness?: Politeness;
+}
+
+// @public
+export function Calendar(props: CalendarProps): JSX.Element;
+
+// @public
+export interface CalendarProps extends Omit<UseCalendarOptions, "value" | "onSelect" | "min" | "max"> {
+    defaultValue?: ISODate | null;
+    focusOnMount?: boolean;
+    headingId?: string;
+    max?: ISODate;
+    messages?: Partial<DatePickerMessages>;
+    min?: ISODate;
+    onCancel?: () => void;
+    onChange?: (value: ISODate) => void;
+    value?: ISODate | null;
+}
+
+// @public
+export interface CalendarState {
+    canShowNext: boolean;
+    canShowPrevious: boolean;
+    focus: (date: PlainDate) => void;
+    focused: PlainDate;
+    isSelectable: (date: PlainDate) => boolean;
+    month: PlainDate;
+    onDayKeyDown: (event: KeyboardEvent_2) => boolean;
+    showMonth: (offset: number) => void;
+    today: PlainDate;
+    weekdays: {
+        short: string;
+        long: string;
+    }[];
+    weeks: (PlainDate | null)[][];
 }
 
 // @public
@@ -162,11 +205,15 @@ export interface ComboboxState {
 }
 
 // @public
+export function compareDates(a: PlainDate, b: PlainDate): number;
+
+// @public
 export function DataGrid<Row>(props: DataGridProps<Row>): JSX.Element;
 
 // @public
 export interface DataGridMessages {
     comboboxMessages: Partial<ComboboxMessages>;
+    datePickerMessages: Partial<DatePickerMessages>;
     empty: string;
     filterButton: (header: string) => string;
     filterDialog: (header: string) => string;
@@ -210,6 +257,7 @@ export interface DataGridProps<Row> {
     defaultFilters?: FilterState;
     defaultSort?: SortState;
     filters?: FilterState;
+    locale?: string;
     messages?: DataGridMessagesInput;
     onColumnWidthsChange?: (widths: ColumnWidths) => void;
     onFiltersChange?: (filters: FilterState) => void;
@@ -234,10 +282,56 @@ export interface DataGridState {
 }
 
 // @public
+export function DatePicker(props: DatePickerProps): JSX.Element;
+
+// @public
+export interface DatePickerMessages {
+    changeDate: (date: string) => string;
+    chooseDate: string;
+    formatHint: (pattern: string) => string;
+    invalidDate: (pattern: string) => string;
+    nextMonth: string;
+    outOfRange: (min: string | null, max: string | null) => string;
+    patternLetters: {
+        day: string;
+        month: string;
+        year: string;
+    };
+    previousMonth: string;
+    unavailable: string;
+    valueMissing: string;
+}
+
+// @public
+export interface DatePickerProps {
+    className?: string;
+    defaultValue?: ISODate | null;
+    description?: string;
+    disabled?: boolean;
+    error?: string;
+    firstDayOfWeek?: number;
+    isDateUnavailable?: (date: ISODate) => boolean;
+    label: string;
+    locale?: string;
+    max?: ISODate;
+    messages?: Partial<DatePickerMessages>;
+    min?: ISODate;
+    name?: string;
+    onChange?: (value: ISODate | null) => void;
+    required?: boolean;
+    style?: CSSProperties;
+    today?: ISODate;
+    value?: ISODate | null;
+}
+
+// @public
 export const defaultComboboxMessages: ComboboxMessages;
 
 // @public
 export const defaultDataGridMessages: DataGridMessages;
+
+// @public
+export const defaultDatePickerMessages: DatePickerMessages;
 
 // @public
 export type FilterKind = "text" | "number" | "values" | "date";
@@ -246,11 +340,28 @@ export type FilterKind = "text" | "number" | "values" | "date";
 export type FilterState = Readonly<Record<string, ColumnFilter>>;
 
 // @public
+export function firstDayOfWeek(locale?: string): number;
+
+// @public
+export function formatFullDate(date: PlainDate, locale?: string): string;
+
+// @public
+export function formatInputDate(date: PlainDate, locale?: string): string;
+
+// @public
 export interface HeaderCapabilities {
     filterable: boolean;
     resizable: boolean;
     sortable: boolean;
 }
+
+// Warning: (ae-forgotten-export) The symbol "Part" needs to be exported by the entry point index.d.ts
+//
+// @public
+export function inputPattern(locale?: string, letters?: Record<Part, string>): string;
+
+// @public
+export type ISODate = string;
 
 // @public
 export function LiveAnnouncer(input: LiveAnnouncerProps): JSX.Element;
@@ -266,6 +377,19 @@ export interface LiveAnnouncerProps {
 export type LoadOptions = (query: string, context: {
     signal: AbortSignal;
 }) => Promise<readonly ComboboxOption[]>;
+
+// @public
+export function parseInputDate(text: string, locale?: string): PlainDate | null;
+
+// @public
+export function parseISODate(text: string | null | undefined): PlainDate | null;
+
+// @public
+export interface PlainDate {
+    day: number;
+    month: number;
+    year: number;
+}
 
 // @public
 export type Politeness = "polite" | "assertive";
@@ -289,7 +413,25 @@ export type SortState = readonly SortDescriptor[];
 export function toggleSort(state: SortState, columnId: string, multi?: boolean): SortState;
 
 // @public
+export function toISODate(date: PlainDate): ISODate;
+
+// @public
 export function useAnnouncer(): Announce;
+
+// @public
+export function useCalendar(options: UseCalendarOptions): CalendarState;
+
+// @public
+export interface UseCalendarOptions {
+    firstDayOfWeek?: number;
+    isDateUnavailable?: (date: ISODate) => boolean;
+    locale?: string;
+    max?: PlainDate | null;
+    min?: PlainDate | null;
+    onSelect: (date: PlainDate) => void;
+    today?: ISODate;
+    value: PlainDate | null;
+}
 
 // @public
 export function useCombobox(options: UseComboboxOptions): ComboboxState;

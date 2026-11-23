@@ -9,6 +9,7 @@ import {
   type KeyboardEvent,
 } from "react";
 import { Combobox } from "../combobox/Combobox.tsx";
+import { DatePicker } from "../date-picker/DatePicker.tsx";
 import { follow, place } from "../internal/place.ts";
 import { isActive } from "./filter.ts";
 import type { DataGridMessages } from "./messages.ts";
@@ -26,6 +27,8 @@ export interface FilterPopoverProps {
   onChange: (filter: ColumnFilter | undefined) => void;
   /** `restoreFocus`: move focus back to the header (Escape, Enter, Close button). */
   onClose: (restoreFocus: boolean) => void;
+  /** Locale of the date pickers in `"date"` filters. */
+  locale?: string;
 }
 
 const NO_VALUES: readonly string[] = [];
@@ -54,6 +57,7 @@ export function FilterPopover({
   messages,
   onChange,
   onClose,
+  locale,
 }: FilterPopoverProps): JSX.Element {
   const ref = useRef<HTMLDivElement>(null);
   const id = useId();
@@ -177,32 +181,33 @@ export function FilterPopover({
     }
     case "date": {
       const current = filter?.kind === "date" ? filter : { kind: "date" as const };
-      const update = (key: "from" | "to", value: string) => {
+      const update = (key: "from" | "to", value: string | null) => {
         const next: { kind: "date"; from?: string; to?: string } = { kind: "date" };
         const from = key === "from" ? value : current.from;
         const to = key === "to" ? value : current.to;
         if (from) next.from = from;
         if (to) next.to = to;
-        onChange(next);
+        onChange(next.from || next.to ? next : undefined);
       };
+      // The library's own date pickers; "to" cannot be before "from".
       body = (
         <div className="tbw-filter__row">
-          <label className="tbw-filter__field">
-            <span>{labels.from}</span>
-            <input
-              type="date"
-              value={current.from ?? ""}
-              onChange={(e) => update("from", e.target.value)}
-            />
-          </label>
-          <label className="tbw-filter__field">
-            <span>{labels.to}</span>
-            <input
-              type="date"
-              value={current.to ?? ""}
-              onChange={(e) => update("to", e.target.value)}
-            />
-          </label>
+          <DatePicker
+            label={labels.from}
+            value={current.from ?? null}
+            onChange={(value) => update("from", value)}
+            messages={messages.datePickerMessages}
+            {...(current.to !== undefined && { max: current.to })}
+            {...(locale !== undefined && { locale })}
+          />
+          <DatePicker
+            label={labels.to}
+            value={current.to ?? null}
+            onChange={(value) => update("to", value)}
+            messages={messages.datePickerMessages}
+            {...(current.from !== undefined && { min: current.from })}
+            {...(locale !== undefined && { locale })}
+          />
         </div>
       );
       break;

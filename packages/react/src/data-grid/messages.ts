@@ -1,4 +1,5 @@
 import type { ComboboxMessages } from "../combobox/messages.ts";
+import type { DatePickerMessages } from "../date-picker/messages.ts";
 import type { SortDirection } from "./types.ts";
 
 /** What a column header offers, for the screen reader hint. */
@@ -49,6 +50,8 @@ export interface DataGridMessages {
   widthText: (pixels: number) => string;
   /** Texts of the combobox in `"values"` filters. */
   comboboxMessages: Partial<ComboboxMessages>;
+  /** Texts of the date pickers in `"date"` filters. */
+  datePickerMessages: Partial<DatePickerMessages>;
 }
 
 const words: Record<SortDirection, string> = { ascending: "ascending", descending: "descending" };
@@ -92,4 +95,5 @@ export const defaultMessages: DataGridMessages = {
   resizeHandle: (header) => `Resize ${header}`,
   widthText: (pixels) => `${pixels} pixels`,
   comboboxMessages: {},
+  datePickerMessages: {},
 };

@@ -3,18 +3,24 @@
     "name": "Everything (index)",
     "path": "dist/index.js",
     "import": "*",
-    "limit": "13 kB"
+    "limit": "16 kB"
   },
   {
     "name": "DataGrid only",
     "path": "dist/data-grid.js",
     "import": "{ DataGrid }",
-    "limit": "13 kB"
+    "limit": "16 kB"
   },
   {
     "name": "Combobox only",
     "path": "dist/combobox.js",
     "import": "{ Combobox }",
+    "limit": "6 kB"
+  },
+  {
+    "name": "DatePicker only",
+    "path": "dist/date-picker.js",
+    "import": "{ DatePicker }",
     "limit": "6 kB"
   },
   {

@@ -5,6 +5,7 @@ export default defineConfig({
     index: "src/index.ts",
     combobox: "src/combobox/index.ts",
     "data-grid": "src/data-grid/index.ts",
+    "date-picker": "src/date-picker/index.ts",
     "live-announcer": "src/live-announcer/index.ts",
     "visually-hidden": "src/visually-hidden/index.ts",
   },
