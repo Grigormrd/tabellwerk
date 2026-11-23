@@ -65,7 +65,7 @@ week start and input parsing, form integration.
 Done when:
 
 - [x] Unit tests for the date logic (leap years, month ends, daylight saving changes)
-- [ ] Keyboard tests in three engines, locale tests for `de-DE` and `en-US` (Chromium locally; Firefox and WebKit in CI pending)
+- [x] Keyboard tests in three engines, locale tests for `de-DE` and `en-US` (Chromium locally; Firefox and WebKit in CI, #8)
 - [x] Focus trap and focus return tested; axe and screenshots
 - [x] The grid's date filter uses the date picker
 
