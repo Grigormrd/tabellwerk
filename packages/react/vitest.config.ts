@@ -61,7 +61,10 @@ export default defineConfig({
               extends: true as const,
               test: {
                 name: "engines",
-                include: ["src/combobox/**/*.browser.test.{ts,tsx}"],
+                include: [
+                  "src/combobox/**/*.browser.test.{ts,tsx}",
+                  "src/date-picker/**/*.browser.test.{ts,tsx}",
+                ],
                 fileParallelism: false,
                 setupFiles: [".storybook/vitest.setup.ts"],
                 browser: browser(["firefox", "webkit"]),
