@@ -59,6 +59,9 @@ jobs:
       - name: Publish to npm
         id: publish
         if: steps.changesets.outputs.hasChangesets == 'false' && vars.NPM_PUBLISH == 'true'
+        # An explicit bash shell runs with pipefail, so a failed publish fails
+        # the step even though its output goes through `tee`.
+        shell: bash
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
