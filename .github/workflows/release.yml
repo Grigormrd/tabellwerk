@@ -62,12 +62,20 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          # Only for the first release, before trusted publishing can be set
+          # up (ADR 11): a short-lived token from the NPM_TOKEN secret. Without
+          # it, npm authenticates through OIDC. Provenance comes from OIDC
+          # either way.
+          if [ -n "$NPM_TOKEN" ]; then
+            echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > "$HOME/.npmrc"
+          fi
           node scripts/publish.mjs | tee publish.log
           if grep -q "^New version: @tabellwerk/react@" publish.log; then
             echo "react=$(grep '^New version: @tabellwerk/react@' publish.log | sed 's/.*@//')" >> "$GITHUB_OUTPUT"
           fi
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Smoke test the published package
         if: steps.publish.outputs.react != ''
