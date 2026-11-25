@@ -175,6 +175,20 @@ the Long Animation Frames API, which reports only frames over 50 ms. CI runs the
 on every pull request and fails when a median exceeds its budget. Bundle size of the grid: 7.3 kB
 (minified and brotli-compressed, checked by size-limit).
 
+### Lighthouse (demo)
+
+Measured on the deployed demo ([tabellwerk-demo.vercel.app](https://tabellwerk-demo.vercel.app),
+production build of `4c854d6`) in Chrome DevTools in a private window, on 2026-11-25:
+
+| Profile | Performance | Accessibility | Best Practices | SEO | First Contentful Paint | Largest Contentful Paint |
+| ------- | ----------: | ------------: | -------------: | --: | ---------------------: | -----------------------: |
+| Desktop |          88 |           100 |            100 | 100 |                  0.4 s |                    2.1 s |
+| Mobile  |          86 |           100 |            100 | 100 |                  1.2 s |                    1.2 s |
+
+The page loads 2.2 MB of data (Brotli) before the grid can show it
+([ADR 10](docs/adr/0010-demo-data-source.md)); Largest Contentful Paint on desktop is the weakest
+value. The Storybook documentation site has not been measured yet.
+
 ## Project structure
 
 ```
