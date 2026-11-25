@@ -4,6 +4,9 @@ on:
   push:
     branches: [main]
   pull_request:
+  # For the "Version Packages" pull request: pull requests opened by the
+  # release workflow do not start other workflows, so CI is started by hand.
+  workflow_dispatch:
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -97,6 +100,30 @@ jobs:
           name: demo-report
           path: apps/demo/playwright-report
           retention-days: 7
+
+  smoke:
+    name: Smoke test (fresh Vite app with the packed packages)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm --filter @tabellwerk/react exec playwright install --with-deps chromium
+
+      - run: pnpm turbo run build --filter=./packages/*
+
+      # Packs both packages, installs them with npm into a new app outside the
+      # repository, type-checks, builds and checks it in Chromium (ADR 11).
+      - run: pnpm smoke
 
   visual:
     name: Visual regression

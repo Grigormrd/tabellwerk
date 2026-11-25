@@ -1,0 +1,102 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+import { ColorTable } from "./ColorTable.tsx";
+
+<Meta title="Theming" />
+
+# Theming
+
+Every colour, space and size in the components is a CSS custom property from
+`@tabellwerk/tokens`, named `--tbw-*`. The tokens are written once in the
+[DTCG format](https://www.designtokens.org/) and turned into CSS (and typed references for
+JavaScript) by Style Dictionary.
+
+## Light, dark and forced colours
+
+The components follow `prefers-color-scheme`. To force a theme for a page or any subtree, set the
+token attribute:
+
+```html
+<html data-tbw-theme="dark">
+  …
+  <section data-tbw-theme="light">…</section>
+</html>
+```
+
+In forced-colours mode (Windows contrast themes) every colour role maps to a CSS system colour
+(`Canvas`, `CanvasText`, `Highlight`, …), so the user's own colours win.
+
+Set `color-scheme` on your page as well, so scrollbars and native form controls match:
+
+```css
+:root {
+  color-scheme: light dark;
+}
+:root[data-tbw-theme="light"] {
+  color-scheme: light;
+}
+:root[data-tbw-theme="dark"] {
+  color-scheme: dark;
+}
+```
+
+## Colour roles
+
+Each text colour is checked against WCAG 2.1 contrast in both themes by the tokens package's
+tests.
+
+<ColorTable />
+
+## Overriding
+
+All library CSS lives in cascade layers (`tabellwerk.tokens`, `tabellwerk.components`). Any CSS
+that is not in a layer beats layered CSS, whatever its specificity. So a plain rule is enough:
+
+```css
+/* Your brand colour: one value for light backgrounds… */
+:root,
+[data-tbw-theme="light"] {
+  --tbw-color-accent: #6b2fb3;
+  --tbw-color-focus: #6b2fb3;
+}
+
+/* …and a lighter one for dark backgrounds, following the same switches as the tokens. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-tbw-theme="light"]) {
+    --tbw-color-accent: #c6a2ff;
+    --tbw-color-focus: #c6a2ff;
+  }
+}
+[data-tbw-theme="dark"] {
+  --tbw-color-accent: #c6a2ff;
+  --tbw-color-focus: #c6a2ff;
+}
+
+/* More room in the grid's cells. */
+.my-grid {
+  --tbw-space-3: 1rem;
+}
+```
+
+Because unlayered rules always win, an override without the dark variants would apply in the dark
+theme too. Check the contrast of colours you change: the tests only cover the defaults. The grid's
+row height is a prop (`rowHeight`), not a custom property, because the virtualiser needs it as a
+number.
+
+If your own CSS uses layers, declare the order once so the library stays underneath:
+
+```css
+@layer tabellwerk, app;
+```
+
+## In JavaScript
+
+For canvas, charts or inline styles, the tokens package exports typed references and the
+resolved values:
+
+```ts
+import { THEME_ATTRIBUTE, themes, vars } from "@tabellwerk/tokens";
+
+vars.color.accent; // "var(--tbw-color-accent)"
+themes.dark.accent; // "#7ab0ff"
+THEME_ATTRIBUTE; // "data-tbw-theme"
+```

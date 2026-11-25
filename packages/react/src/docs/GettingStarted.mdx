@@ -1,0 +1,126 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+
+<Meta title="Getting started" />
+
+# Tabellwerk
+
+Accessible React components centred on a fast data grid. Every component follows the
+[WAI-ARIA Authoring Practices](https://www.w3.org/WAI/ARIA/apg/), works with the keyboard alone
+and is tested with axe in light, dark and forced-colours mode.
+
+- **DataGrid**: 100,000 rows, sorting, filters and column resizing by keyboard and pointer
+- **Combobox**: list and inline autocomplete, several values, options from a server
+- **DatePicker**: ISO date strings, a modal calendar, the locale's week start and input format
+
+See them together with real data in the
+[demo](https://tabellwerk-demo.vercel.app): every hour of the German electricity market since 2015.
+
+## Installation
+
+```bash
+npm install @tabellwerk/react
+```
+
+Tabellwerk needs React 19 (`react` and `react-dom` are peer dependencies). The package is ESM
+only and ships its own TypeScript types.
+
+Import the stylesheet once, for example in your root layout:
+
+```tsx
+import "@tabellwerk/react/styles.css";
+```
+
+It contains the design tokens from `@tabellwerk/tokens` and the component styles, all inside
+cascade layers named `tabellwerk.*`, so any unlayered CSS in your application overrides them
+without specificity tricks. See [Theming](?path=/docs/theming--docs).
+
+## A first grid
+
+```tsx
+import { DataGrid, type ColumnDef } from "@tabellwerk/react";
+
+interface Price {
+  time: Date;
+  zone: string;
+  price: number;
+}
+
+// Outside the component (or memoised): a new array on every render would
+// sort and filter the rows again.
+const columns: ColumnDef<Price>[] = [
+  { id: "time", header: "Time", filter: "date" },
+  { id: "zone", header: "Zone", filter: "values" },
+  { id: "price", header: "Price €/MWh", align: "end", filter: "number" },
+];
+
+export function Prices({ rows }: { rows: Price[] }) {
+  return (
+    <DataGrid aria-label="Day-ahead prices" rows={rows} columns={columns} style={{ height: 480 }} />
+  );
+}
+```
+
+Give the grid a definite height (`style` or `className`); it scrolls inside it. In a flex column
+without a fixed height, do not make it `flex: 1`: the flex basis would fall back to the height of
+all rows, and the grid would render every one of them.
+
+## A combobox and a date picker
+
+```tsx
+import { Combobox, DatePicker, type ComboboxOption } from "@tabellwerk/react";
+
+const zones: ComboboxOption[] = [
+  { value: "DE-LU", label: "Germany, Luxembourg" },
+  { value: "FR", label: "France" },
+  { value: "NL", label: "Netherlands" },
+];
+
+export function Filters() {
+  const [zone, setZone] = useState<string | null>("DE-LU");
+  const [day, setDay] = useState<string | null>("2026-11-23");
+  return (
+    <>
+      <Combobox label="Bidding zone" options={zones} value={zone} onChange={setZone} />
+      <DatePicker label="Delivery day" value={day} onChange={setDay} min="2015-01-01" />
+    </>
+  );
+}
+```
+
+Dates are ISO strings (`"2026-11-23"`), never `Date` objects, so no time zone can move a day.
+
+## Controlled or uncontrolled
+
+Every piece of state works both ways: pass `value` and `onChange` (or `sort` and `onSortChange`,
+`filters` and `onFiltersChange`, `columnWidths` and `onColumnWidthsChange`) to own it, or
+`defaultValue` (`defaultSort`, …) to let the component keep it.
+
+## Smaller bundles
+
+The main entry exports everything. Each component also has its own entry point, which bundlers
+can load on its own:
+
+```tsx
+import { DataGrid } from "@tabellwerk/react/data-grid";
+import { Combobox } from "@tabellwerk/react/combobox";
+import { DatePicker } from "@tabellwerk/react/date-picker";
+```
+
+Sizes (minified and brotli-compressed) are checked in every pull request; the grid's entry
+includes the combobox and date picker its filters use.
+
+## Server rendering
+
+The components render without a DOM (tested with `renderToString`) and carry a `"use client"`
+directive, so they work in React Server Component frameworks such as the Next.js App Router
+without a wrapper.
+
+## Texts and languages
+
+All visible and announced texts are props (`messages`), so the components can be translated. The
+date picker reads the first day of the week, month names and the input format from its `locale`.
+
+## Utilities
+
+- **VisuallyHidden**: text for assistive technology only.
+- **LiveAnnouncer**: polite and assertive announcements through `useAnnouncer()`.

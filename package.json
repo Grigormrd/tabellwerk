@@ -24,6 +24,8 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "changeset": "changeset",
+    "smoke": "node scripts/smoke-test.mjs",
+    "release:publish": "node scripts/publish.mjs",
     "perf": "pnpm --filter @tabellwerk/react perf"
   },
   "devDependencies": {

@@ -1,0 +1,75 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+
+<Meta title="Accessibility" />
+
+# Accessibility
+
+Tabellwerk follows the [WAI-ARIA Authoring Practices](https://www.w3.org/WAI/ARIA/apg/) (APG) for
+each component. This page sums up what each one does for keyboard and screen reader users, how
+that is tested, and what is not covered yet. The full keyboard tables are on each component's page.
+
+## DataGrid
+
+Pattern: [grid](https://www.w3.org/WAI/ARIA/apg/patterns/grid/).
+
+- **One tab stop.** Arrow keys, Home/End, Ctrl+Home/End and Page Up/Down move between cells
+  (roving `tabindex`). Enter or F2 moves into links and buttons inside a cell; Escape returns.
+- **Virtual rows keep their place.** Only the rows in view are in the DOM, but every row has its
+  real `aria-rowindex` and the grid its full `aria-rowcount`, so screen readers announce "row 5,012
+  of 100,001". The focused row stays mounted when it scrolls out of view, so focus is never lost.
+- **Header controls.** Enter or Space sorts (Shift adds a column), Alt+Down Arrow opens the
+  column's filter, F2 moves to the header's filter button and resize handle. `aria-sort` marks
+  sorted columns, and each header describes what it can do.
+- **Announcements.** Sorting and the number of rows matching a filter are announced through a live
+  region.
+- **Resizing without a pointer.** The resize handle is a focusable `separator` with
+  `aria-valuenow`; arrow keys change the width, Enter fits the column to its content.
+
+## Combobox
+
+Pattern: [combobox with listbox popup](https://www.w3.org/WAI/ARIA/apg/patterns/combobox/).
+
+- **Focus stays in the field.** The active option is referenced with `aria-activedescendant`, so
+  typing and moving through options never move focus.
+- **Autocomplete** as a list (`aria-autocomplete="list"`) or inline (`"both"`); the number of
+  results, loading and errors are announced.
+- **Input methods.** No filtering while Japanese or Chinese text is being composed.
+- **Long lists** render virtually and keep `aria-setsize` and `aria-posinset` correct.
+- **Several values** are chips with their own remove buttons; Backspace in the empty field
+  removes the last one; additions and removals are announced.
+- **Forms:** `name`, `required` with native validation, and reset.
+
+## DatePicker
+
+Pattern: [date picker dialog](https://www.w3.org/WAI/ARIA/apg/patterns/dialog-modal/examples/datepicker-dialog/).
+
+- **A text field first.** Dates can be typed in the locale's format (shown as a hint) or as ISO;
+  errors are specific ("enter a date as DD.MM.YYYY", "choose a date between …") and linked to
+  the field.
+- **A modal calendar.** The native `<dialog>` with `showModal()` makes the page behind inert.
+  Focus starts on the selected date (or today), Tab cycles inside the dialog, Escape closes it,
+  and focus returns to the button.
+- **Calendar keys:** arrows by day and week, Home/End to the start and end of the week (by
+  locale), Page Up/Down by month, with Shift by year; the month heading is a live region.
+- **Unavailable days** are marked with `aria-disabled` and can be focused but not chosen, so
+  keyboard users can still move past them.
+
+## How it is tested
+
+| What                    | How                                                                                                     |
+| ----------------------- | ------------------------------------------------------------------------------------------------------- |
+| WCAG 2.1 A and AA rules | axe on every story and every docs page, in light, dark and forced-colours mode, on the production build |
+| Keyboard                | every row of each keyboard table has a test that presses real keys through the browser                  |
+| Browsers                | everything in Chromium; the combobox and date picker keyboard tests also in Firefox and WebKit          |
+| Contrast                | every text colour token against its background, in both themes                                          |
+| Real use                | the [demo](https://tabellwerk-demo.vercel.app) is tested end to end with axe, including open popups     |
+
+## Not covered yet
+
+- **Screen readers.** The structure follows the APG and is checked by axe, but no results of manual
+  testing with NVDA, JAWS or VoiceOver are documented yet. Virtualised grids are a known weak spot
+  in screen reader browse modes.
+- **Right-to-left** layouts are not supported.
+- **Editing cells** and row selection are not part of the grid.
+- **Very large row counts** are limited by the browser's maximum element height, since the grid
+  sizes its scroll area to all rows.

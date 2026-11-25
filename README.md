@@ -12,10 +12,10 @@ keyboard tables, all stories in light and dark; try the
 **Demo:** [tabellwerk-demo.vercel.app](https://tabellwerk-demo.vercel.app) (every hour of the German
 electricity market since 2015, 104,256 real rows)
 
-> **Status: under construction.** The data grid (100,000 rows: navigation, sorting, filters,
-> column widths), the combobox, the date picker (Phases 1 to 4) and the demo application (Phase 5)
-> are done. The first release follows in the [roadmap](docs/ROADMAP.md). Nothing is published to
-> npm yet.
+![The demo: scrolling through 104,256 hours, keyboard navigation in the grid, sorting by price, a quick period, adding a series in the combobox and moving the start date in the calendar](docs/media/preview.gif)
+
+> **Status:** all components and the demo are done (Phases 0 to 5 of the [roadmap](docs/ROADMAP.md)).
+> The first npm release, 0.1.0, is prepared; until it is published, install from a clone.
 
 ## Demo
 
@@ -89,7 +89,7 @@ const columns: ColumnDef<Price>[] = [
 
 Planned:
 
-- The first npm release
+- The first npm release, 0.1.0 ([ADR 11](docs/adr/0011-releases.md))
 
 ## Tech stack
 
@@ -121,8 +121,12 @@ flowchart LR
   SRC --> SB["Storybook<br/>documentation"]
   SB --> E2E["Playwright<br/>axe · screenshots"]
   TSD --> CHECKS["publint · attw<br/>size-limit · API report"]
-  TSD --> APP["Your app"]
-  BUNDLE --> APP
+  TSD --> SMOKE["smoke test<br/>fresh Vite app, npm install"]
+  TSD --> DEMO["apps/demo<br/>SMARD data, Playwright"]
+  BUNDLE --> DEMO
+  TSD --> NPM[("npm<br/>Changesets, provenance")]
+  BUNDLE --> NPM
+  NPM --> APP["Your app"]
 ```
 
 Inside the grid, data and rendering are separate:
@@ -147,7 +151,8 @@ The reasoning behind these choices is recorded in [Architecture Decision Records
 [header controls, filtering and resizing](docs/adr/0007-header-controls-filtering-and-resizing.md),
 [combobox](docs/adr/0008-combobox.md),
 [date picker](docs/adr/0009-date-picker.md),
-[demo data source](docs/adr/0010-demo-data-source.md).
+[demo data source](docs/adr/0010-demo-data-source.md),
+[releases](docs/adr/0011-releases.md).
 
 ## Performance
 
@@ -172,8 +177,11 @@ the grid, on PR 6 80 ms. The budgets are set so that both pass with room to spar
 
 Interaction times come from the Event Timing API, the data INP is computed from; frames come from
 the Long Animation Frames API, which reports only frames over 50 ms. CI runs the same measurement
-on every pull request and fails when a median exceeds its budget. Bundle size of the grid: 7.3 kB
-(minified and brotli-compressed, checked by size-limit).
+on every pull request and fails when a median exceeds its budget.
+
+Bundle sizes (minified and brotli-compressed, checked by size-limit on every pull request):
+everything 14.2 kB; the grid 13.9 kB, including the combobox and date picker its filters use; the
+combobox alone 4.7 kB; the date picker alone 4.2 kB; the stylesheet with all tokens 3.3 kB.
 
 ### Lighthouse (demo)
 
@@ -201,9 +209,10 @@ apps/
   demo/       Vite app with SMARD data; uses the built packages like an installed dependency
     scripts/  records the SMARD data into public/data
     e2e/      Playwright: behaviour and axe on the production build
-scripts/      static file server for tests, visual tests in Docker
+scripts/      static file server, visual tests in Docker, smoke test, publishing, preview GIF
 docs/
   adr/        Architecture Decision Records
+  media/      the preview GIF (recorded by `pnpm --filter demo record:preview`)
   ROADMAP.md  phases and their "done when" criteria
 ```
 
@@ -231,6 +240,7 @@ pnpm demo             # http://localhost:5173
 | `pnpm demo:e2e`      | End-to-end and axe tests on the demo's production build (needs `pnpm build`)        |
 | `pnpm visual:update` | Record visual baselines in the Playwright Docker image                              |
 | `pnpm perf`          | Performance measurements and budgets (needs `build:docs`)                           |
+| `pnpm smoke`         | Install the packed packages into a fresh Vite app and check it (needs `pnpm build`) |
 | `pnpm changeset`     | Describe a change for the changelog                                                 |
 | `pnpm format`        | Format the codebase with Prettier                                                   |
 
@@ -242,23 +252,32 @@ to [tabellwerk.vercel.app](https://tabellwerk.vercel.app); pull requests get pre
 The demo is a second Vercel project (`tabellwerk-demo`; build command
 `pnpm turbo run build --filter=demo`, output `apps/demo/dist`), deployed the same way to
 [tabellwerk-demo.vercel.app](https://tabellwerk-demo.vercel.app).
-Nothing is published to npm yet.
+
+## Releases
+
+Versions and changelogs come from [Changesets](https://github.com/changesets/changesets); both
+packages always share one version. On every push to `main` the release workflow opens or updates a
+"Version Packages" pull request. Merging it publishes the new versions to npm with provenance
+through trusted publishing (no npm token), tags them, creates GitHub releases and runs the smoke
+test against the published package ([ADR 11](docs/adr/0011-releases.md)). Nothing is published to
+npm yet.
 
 ## Testing
 
 Tests run where the code runs ([ADR 3](docs/adr/0003-testing-strategy.md)):
 
-| Layer             | Tool                                            | What it covers                                                                |
-| ----------------- | ----------------------------------------------- | ----------------------------------------------------------------------------- |
-| Tokens            | Vitest                                          | WCAG contrast of every colour pair in light and dark, build output            |
-| Server rendering  | Vitest in Node                                  | Components render without a DOM; live regions exist before the first message  |
-| Keyboard, pointer | Vitest browser mode (Chromium via Playwright)   | Real key events through the browser's input pipeline                          |
-| Stories           | Storybook Vitest addon                          | Every story renders, its play function passes, axe finds no violation         |
-| Accessibility     | Playwright + axe-core                           | WCAG 2.1 A/AA on every story in light, dark and forced-colours mode           |
-| Visual regression | Playwright in Docker                            | Screenshot of every story in light and dark, compared pixel by pixel          |
-| Package           | publint, attw, size-limit, API Extractor        | Exports, type resolution, size per entry point, unintended public API changes |
-| Performance       | Playwright, Event Timing, Long Animation Frames | Interaction and scroll budgets on 100,000 rows; render counts per key press   |
-| Demo              | Vitest, Playwright + axe-core                   | Data decoding incl. clock changes; the production build with recorded data    |
+| Layer             | Tool                                            | What it covers                                                                 |
+| ----------------- | ----------------------------------------------- | ------------------------------------------------------------------------------ |
+| Tokens            | Vitest                                          | WCAG contrast of every colour pair in light and dark, build output             |
+| Server rendering  | Vitest in Node                                  | Components render without a DOM; live regions exist before the first message   |
+| Keyboard, pointer | Vitest browser mode (Chromium via Playwright)   | Real key events through the browser's input pipeline                           |
+| Stories           | Storybook Vitest addon                          | Every story renders, its play function passes, axe finds no violation          |
+| Accessibility     | Playwright + axe-core                           | WCAG 2.1 A/AA on every story (light, dark, forced colours) and docs page       |
+| Visual regression | Playwright in Docker                            | Screenshot of every story in light and dark, compared pixel by pixel           |
+| Package           | publint, attw, size-limit, API Extractor        | Exports, type resolution, size per entry point, unintended public API changes  |
+| Smoke test        | npm, TypeScript, Vite, Playwright               | The packed packages in a fresh app outside the monorepo: types, build, widgets |
+| Performance       | Playwright, Event Timing, Long Animation Frames | Interaction and scroll budgets on 100,000 rows; render counts per key press    |
+| Demo              | Vitest, Playwright + axe-core                   | Data decoding incl. clock changes; the production build with recorded data     |
 
 ## What was hard
 
