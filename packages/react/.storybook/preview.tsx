@@ -9,6 +9,8 @@ import type { Decorator, Preview } from "@storybook/react-vite";
 import { THEME_ATTRIBUTE } from "@tabellwerk/tokens";
 import { useLayoutEffect, type ReactNode } from "react";
 
+import { systemTheme } from "./theme.ts";
+
 type Theme = "auto" | "light" | "dark";
 
 /**
@@ -50,6 +52,11 @@ const preview: Preview = {
   initialGlobals: { theme: "auto" },
   parameters: {
     layout: "padded",
+    // Docs pages follow the system theme like the stories in "System" mode.
+    docs: { theme: systemTheme() },
+    options: {
+      storySort: { order: ["Getting started", "Theming", "Accessibility", "Components"] },
+    },
     controls: { expanded: true },
     // Fail the Vitest run on any axe violation (default theme). The
     // Playwright suite repeats the check in light, dark and forced colours.

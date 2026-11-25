@@ -12,7 +12,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "e2e": "playwright test",
-    "record": "node scripts/record-smard.mjs"
+    "record": "node scripts/record-smard.mjs",
+    "record:preview": "playwright test --config playwright.record.config.ts && node ../../scripts/preview-gif.mjs test-results/preview.webm ../../docs/media/preview.gif"
   },
   "dependencies": {
     "@tabellwerk/react": "workspace:^",

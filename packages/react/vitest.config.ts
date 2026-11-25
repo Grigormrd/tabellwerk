@@ -28,6 +28,11 @@ const crossEngine = process.env["TBW_ENGINES"] === "all";
 
 export default defineConfig({
   plugins: [react()],
+  // The Storybook preview imports the theming module for the docs theme. The
+  // first run after adding that import failed to load the story files once,
+  // most likely because Vite discovered the module mid-run and re-bundled;
+  // pre-bundling it from the start rules that out.
+  optimizeDeps: { include: ["storybook/theming"] },
   test: {
     projects: [
       {

@@ -1,0 +1,76 @@
+name: Release
+
+# On every push to main: open or update the "Version Packages" pull request
+# from the changesets. When that pull request is merged (no changesets left),
+# publish the new versions to npm with provenance, tag them, create GitHub
+# releases, and check the published packages in a fresh Vite app (ADR 11).
+#
+# Publishing only runs when the repository variable NPM_PUBLISH is "true",
+# which is set once npm trusted publishing is configured for both packages.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Version pull request or publish
+    if: github.repository == 'Grigormrd/tabellwerk'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write # tags and GitHub releases
+      pull-requests: write # the "Version Packages" pull request
+      id-token: write # npm trusted publishing and provenance
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+          # No registry-url: its placeholder token would stand in the way of OIDC.
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Version pull request
+        id: changesets
+        uses: changesets/action@v1
+        with:
+          version: pnpm changeset version
+          title: Version Packages
+          commit: "chore: version packages"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build
+        if: steps.changesets.outputs.hasChangesets == 'false' && vars.NPM_PUBLISH == 'true'
+        run: pnpm build
+
+      - name: Publish to npm
+        id: publish
+        if: steps.changesets.outputs.hasChangesets == 'false' && vars.NPM_PUBLISH == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          node scripts/publish.mjs | tee publish.log
+          if grep -q "^New version: @tabellwerk/react@" publish.log; then
+            echo "react=$(grep '^New version: @tabellwerk/react@' publish.log | sed 's/.*@//')" >> "$GITHUB_OUTPUT"
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Smoke test the published package
+        if: steps.publish.outputs.react != ''
+        run: |
+          pnpm --filter @tabellwerk/react exec playwright install --with-deps chromium
+          node scripts/smoke-test.mjs --registry ${{ steps.publish.outputs.react }}
