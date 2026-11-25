@@ -63,7 +63,8 @@ last Sunday of March not at all; the footer says so.
 - **The data ages.** The demo ends on the recording day. Refreshing is one command
   (`pnpm --filter demo record`) and a commit; each refresh adds about 2 MB (compressed) to the
   repository history.
-- **One larger download.** About 2 MB over the wire before the grid appears. The page shell renders
+- **One larger download.** 2.2 MB over the wire before the grid appears (Brotli from Vercel,
+  measured on the deployed demo). The page shell renders
   at once with a loading message, and `index.html` preloads the file. Splitting it by year would
   show recent data sooner but complicates the period selection; revisit if the Lighthouse
   measurement on the deployed demo calls for it.

@@ -163,3 +163,36 @@ test("a failed download says so and can be tried again", async ({ page }) => {
   await expect(grid(page)).toBeVisible();
   await expect(alert).toBeHidden();
 });
+
+test("no column header is cut off, also with a sort arrow and every series", async ({ page }) => {
+  await openDemo(page);
+  const series = page.getByRole("combobox", { name: "Series" });
+  // Add every series that is not shown yet.
+  for (const name of [
+    "Biomass",
+    "Hydro",
+    "Other renewables",
+    "Hard coal",
+    "Nuclear",
+    "Pumped storage",
+    "Other conventional",
+  ]) {
+    await series.fill(name);
+    await series.press("ArrowDown");
+    await series.press("Enter");
+  }
+  await page.keyboard.press("Escape");
+
+  const priceHeader = grid(page).getByRole("columnheader", { name: /^Price/ });
+  await priceHeader.click();
+  await priceHeader.click();
+  await expect(priceHeader).toHaveAttribute("aria-sort", "descending");
+
+  const cut = await grid(page)
+    .locator('[role="columnheader"] .tbw-grid__text')
+    .evaluateAll((texts) =>
+      texts.filter((t) => t.scrollWidth > t.clientWidth).map((t) => t.textContent),
+    );
+  expect(cut).toEqual([]);
+  await expect(grid(page).getByRole("columnheader")).toHaveCount(16);
+});

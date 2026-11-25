@@ -9,6 +9,9 @@ light/dark/forced-colours themes, and every claim backed by a test.
 keyboard tables, all stories in light and dark; try the
 [100,000-row grid](https://tabellwerk.vercel.app/?path=/story/components-datagrid--hundred-thousand-rows))
 
+**Demo:** [tabellwerk-demo.vercel.app](https://tabellwerk-demo.vercel.app) (every hour of the German
+electricity market since 2015, 104,256 real rows)
+
 > **Status: under construction.** The data grid (100,000 rows: navigation, sorting, filters,
 > column widths), the combobox, the date picker (Phases 1 to 4) and the demo application (Phase 5)
 > are done. The first release follows in the [roadmap](docs/ROADMAP.md). Nothing is published to
@@ -21,7 +24,8 @@ market since 1 January 2015**, 104,256 rows of day-ahead prices, load and genera
 [SMARD](https://www.smard.de) (Bundesnetzagentur | SMARD.de, CC BY 4.0). Two date pickers choose the
 period, a combobox chooses the series (one column each), and the grid sorts, filters and resizes all
 of it. The data is a recording committed with the app, so it works without any server of ours and
-its tests need no network ([ADR 10](docs/adr/0010-demo-data-source.md)).
+its tests need no network ([ADR 10](docs/adr/0010-demo-data-source.md)). Live at
+[tabellwerk-demo.vercel.app](https://tabellwerk-demo.vercel.app).
 
 ## Packages
 
@@ -221,6 +225,9 @@ pnpm demo             # http://localhost:5173
 The documentation site is the static Storybook build on Vercel (project `tabellwerk`; build
 command `pnpm build:docs`, output `packages/react/storybook-static`). Every push to `main` deploys
 to [tabellwerk.vercel.app](https://tabellwerk.vercel.app); pull requests get preview deployments.
+The demo is a second Vercel project (`tabellwerk-demo`; build command
+`pnpm turbo run build --filter=demo`, output `apps/demo/dist`), deployed the same way to
+[tabellwerk-demo.vercel.app](https://tabellwerk-demo.vercel.app).
 Nothing is published to npm yet.
 
 ## Testing
@@ -309,6 +316,11 @@ Things that took longer than expected so far, and what they changed.
   content: 3.7 million pixels of rows. The virtualiser measured that as its viewport and rendered
   every row. A paused debugger showed React creating DOM nodes; the grid now has a definite height,
   as its documentation asks, and the stylesheet comment says why.
+- **Header widths guessed from character counts.** The demo first sized its columns as "characters
+  × a constant". On the deployed site the headers were cut off as soon as a sort arrow appeared,
+  because `system-ui` is a different font on every platform. Widths are now measured with the page
+  font (canvas `measureText`) plus the header's padding, filter button and sort arrow, and an
+  end-to-end test sorts a column with every series shown and fails if any header text overflows.
 - **`format` was called with `null`.** A filter test crashed in `toFixed()`, because the grid
   passed empty values to the column's `format`. Empty values now always render as empty cells and
   `format` receives only non-empty values, which its type says.
