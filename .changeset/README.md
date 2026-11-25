@@ -14,6 +14,6 @@ from the point of view of someone using the library. Both packages always share 
 While the version is `0.x`, a breaking change is a **minor** bump. The API report in
 `packages/react/etc/react.api.md` shows every change to the public API in the pull request diff.
 
-Nothing is published yet. The release workflow (planned for the release phase, see
-[the roadmap](../docs/ROADMAP.md)) will collect the changesets on `main` into a "Version packages"
-pull request; merging that pull request publishes to npm.
+The release workflow collects the changesets on `main` into a "Version Packages" pull request.
+Merging it stages the new versions on npm; they are public once a maintainer approves them on
+npmjs.com ([ADR 11](../docs/adr/0011-releases.md)).

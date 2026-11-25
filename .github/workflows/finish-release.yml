@@ -1,0 +1,54 @@
+name: Finish release
+
+# The second half of a release (ADR 11). Once a maintainer has approved the
+# staged versions on npmjs.com, publish their draft GitHub releases and check
+# the packages from the registry in a fresh Vite app. Runs every three hours
+# and by hand after an approval; without an approved draft it does nothing.
+
+on:
+  schedule:
+    - cron: "17 */3 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  finish:
+    name: Publish GitHub releases and smoke test
+    if: github.repository == 'Grigormrd/tabellwerk'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write # GitHub releases
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+
+      - name: Publish approved releases
+        id: finish
+        shell: bash
+        run: |
+          node scripts/publish.mjs --finish | tee finish.log
+          if grep -q "^New version: @tabellwerk/react@" finish.log; then
+            echo "react=$(grep '^New version: @tabellwerk/react@' finish.log | sed 's/.*@//')" >> "$GITHUB_OUTPUT"
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: pnpm/action-setup@v6
+        if: steps.finish.outputs.react != ''
+
+      - name: Install
+        if: steps.finish.outputs.react != ''
+        run: pnpm install --frozen-lockfile
+
+      - name: Smoke test the published package
+        if: steps.finish.outputs.react != ''
+        run: |
+          pnpm --filter @tabellwerk/react exec playwright install --with-deps chromium
+          node scripts/smoke-test.mjs --registry ${{ steps.finish.outputs.react }}
