@@ -65,7 +65,7 @@ jobs:
       - run: pnpm e2e
 
       - if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: a11y-report
           path: packages/react/playwright-report
@@ -95,7 +95,7 @@ jobs:
       - run: pnpm demo:e2e
 
       - if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: demo-report
           path: apps/demo/playwright-report
@@ -150,7 +150,7 @@ jobs:
       - run: pnpm visual
 
       - if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: visual-diff
           path: |
@@ -182,7 +182,7 @@ jobs:
 
       # The measured values, also when the budgets pass, for the README and ADR 4.
       - if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: perf-results
           path: packages/react/test-results/perf.json
