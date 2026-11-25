@@ -66,7 +66,8 @@ last Sunday of March not at all; the footer says so.
 - **One larger download.** 2.2 MB over the wire before the grid appears (Brotli from Vercel,
   measured on the deployed demo). The page shell renders
   at once with a loading message, and `index.html` preloads the file. Splitting it by year would
-  show recent data sooner but complicates the period selection; revisit if the Lighthouse
-  measurement on the deployed demo calls for it.
+  show recent data sooner but complicates the period selection. Lighthouse on the deployed demo
+  (2026-11-25) rated Performance 88 on desktop and 86 on mobile, with Largest Contentful Paint at
+  2.1 s on desktop; the split stays an option if that matters later.
 - **SMARD's format can change.** The recorder rejects anything unexpected instead of writing a
   wrong file; the deployed demo is unaffected until someone records again.
