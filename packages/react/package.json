@@ -1,6 +1,6 @@
 {
   "name": "@tabellwerk/react",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Accessible React components centred on a fast, keyboard-friendly data grid",
   "license": "MIT",
   "type": "module",

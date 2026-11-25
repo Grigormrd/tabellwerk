@@ -1,6 +1,6 @@
 {
   "name": "@tabellwerk/tokens",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Framework-neutral design tokens for Tabellwerk: CSS custom properties for light, dark and forced-colors modes, plus typed JavaScript references",
   "license": "MIT",
   "type": "module",
