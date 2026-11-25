@@ -14,8 +14,20 @@ electricity market since 2015, 104,256 real rows)
 
 ![The demo: scrolling through 104,256 hours, keyboard navigation in the grid, sorting by price, a quick period, adding a series in the combobox and moving the start date in the calendar](docs/media/preview.gif)
 
-> **Status:** all components and the demo are done (Phases 0 to 5 of the [roadmap](docs/ROADMAP.md)).
-> The first npm release, 0.1.0, is prepared; until it is published, install from a clone.
+> **Status:** 0.1.0 is on npm with provenance; all phases of the [roadmap](docs/ROADMAP.md) (0 to 6) are
+> done. Versions stay at 0.x until the API has proved itself.
+
+```bash
+npm install @tabellwerk/react
+```
+
+```tsx
+import "@tabellwerk/react/styles.css";
+import { DataGrid, Combobox, DatePicker } from "@tabellwerk/react";
+```
+
+See [Getting started](https://tabellwerk.vercel.app/?path=/docs/getting-started--docs) for a first
+grid, theming and the per-component entry points.
 
 ## Demo
 
@@ -29,10 +41,10 @@ its tests need no network ([ADR 10](docs/adr/0010-demo-data-source.md)). Live at
 
 ## Packages
 
-| Package              | What it contains                                                                                            |
-| -------------------- | ----------------------------------------------------------------------------------------------------------- |
-| `@tabellwerk/tokens` | Design tokens as CSS custom properties (light, dark, forced colours) and typed `var()` references; no React |
-| `@tabellwerk/react`  | Components and hooks; one entry point per component; one stylesheet that includes the tokens                |
+| Package                                                                  | What it contains                                                                                            |
+| ------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------- |
+| [`@tabellwerk/tokens`](https://www.npmjs.com/package/@tabellwerk/tokens) | Design tokens as CSS custom properties (light, dark, forced colours) and typed `var()` references; no React |
+| [`@tabellwerk/react`](https://www.npmjs.com/package/@tabellwerk/react)   | Components and hooks; one entry point per component; one stylesheet that includes the tokens                |
 
 ## Features
 
@@ -86,10 +98,6 @@ const columns: ColumnDef<Price>[] = [
     `useCalendar()` on their own
 - The grid's filters use the library's own widgets: the combobox for values, the date picker for
   date ranges
-
-Planned:
-
-- The first npm release, 0.1.0 ([ADR 11](docs/adr/0011-releases.md))
 
 ## Tech stack
 
@@ -257,10 +265,11 @@ The demo is a second Vercel project (`tabellwerk-demo`; build command
 
 Versions and changelogs come from [Changesets](https://github.com/changesets/changesets); both
 packages always share one version. On every push to `main` the release workflow opens or updates a
-"Version Packages" pull request. Merging it publishes the new versions to npm with provenance
-through trusted publishing (no npm token), tags them, creates GitHub releases and runs the smoke
-test against the published package ([ADR 11](docs/adr/0011-releases.md)). Nothing is published to
-npm yet.
+"Version Packages" pull request. Merging it stages the new versions on npm with provenance through
+trusted publishing (no npm token), tags them and drafts GitHub releases. They become public only
+when a maintainer approves them on npmjs.com with two-factor authentication; a second workflow then
+publishes the GitHub releases and runs the smoke test against the packages from the registry
+([ADR 11](docs/adr/0011-releases.md)).
 
 ## Testing
 

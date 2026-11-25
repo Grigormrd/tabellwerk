@@ -37,7 +37,9 @@ let tabellwerk;
 let overrides = {};
 if (registryVersion) {
   tabellwerk = registryVersion;
-  // A version can take a moment to appear after publishing.
+  // A version can take a while to appear after publishing: after the first
+  // release, npm kept answering 404 for the new package for about five
+  // minutes. Wait up to ten.
   for (let attempt = 1; ; attempt++) {
     try {
       execFileSync("npm", ["view", `@tabellwerk/react@${registryVersion}`, "version"], {
@@ -46,7 +48,7 @@ if (registryVersion) {
       });
       break;
     } catch {
-      if (attempt === 12) throw new Error(`@tabellwerk/react@${registryVersion} is not on npm`);
+      if (attempt === 60) throw new Error(`@tabellwerk/react@${registryVersion} is not on npm`);
       await new Promise((r) => setTimeout(r, 10000));
     }
   }

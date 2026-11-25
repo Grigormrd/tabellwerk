@@ -91,7 +91,9 @@ first npm release `0.1.0` (after approval).
 
 Done when:
 
-- [ ] A fresh Vite project installs `@tabellwerk/react` from npm and renders the grid, combobox and
-      date picker (automated smoke test)
-- [ ] Provenance visible on npmjs.com
-- [ ] Documentation and demo live
+- [x] A fresh Vite project installs `@tabellwerk/react` from npm and renders the grid, combobox and
+      date picker (automated smoke test, `node scripts/smoke-test.mjs --registry 0.1.0`, passed
+      2026-11-25)
+- [x] Provenance on npm: SLSA v1 statements for both packages, built by `release.yml` on `main`
+      (0.1.0 published 2026-11-25)
+- [x] Documentation and demo live: https://tabellwerk.vercel.app, https://tabellwerk-demo.vercel.app

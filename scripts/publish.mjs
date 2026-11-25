@@ -1,11 +1,16 @@
-// Publishes every public package whose current version is not on npm yet,
-// then tags the release and creates a GitHub release from the changelog.
-// Run by the release workflow after a "Version Packages" pull request is
-// merged (ADR 11); `--dry-run` shows what would happen without publishing.
+// Releases the public packages in two halves (ADR 11):
 //
-// Each package is packed with pnpm first, which replaces `workspace:^` with
-// real version ranges, and the tarball is published with npm, which signs it
-// with provenance from GitHub Actions (OIDC trusted publishing, no token).
+// - Without flags, run by the release workflow after a "Version Packages" pull
+//   request is merged: stages every package version that has no git tag yet
+//   on npm (`npm stage publish`, with provenance from GitHub Actions), tags it
+//   and creates a draft GitHub release from the changelog. A staged version is
+//   not public until a maintainer approves it on npmjs.com with 2FA.
+// - With `--finish`, run by the finish-release workflow: publishes the draft
+//   GitHub release of every version that is on npm by now (approved).
+//
+// `--dry-run` stages nothing and writes no tags or releases. Each package is
+// packed with pnpm first, which replaces `workspace:^` with real version
+// ranges.
 
 import { execFileSync } from "node:child_process";
 import { mkdtemp, readdir, readFile } from "node:fs/promises";
@@ -15,13 +20,10 @@ import { fileURLToPath } from "node:url";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const dryRun = process.argv.includes("--dry-run");
-// Provenance needs GitHub Actions; `--no-provenance` is for a publish from a
-// developer machine, such as the very first one before trusted publishing
-// can be configured.
-const provenance = !process.argv.includes("--no-provenance");
+const finish = process.argv.includes("--finish");
 const shell = process.platform === "win32";
 
-/** In publishing order: the react package depends on the tokens package. */
+/** In release order: the react package depends on the tokens package. */
 const PACKAGES = ["packages/tokens", "packages/react"];
 
 function run(command, args, options = {}) {
@@ -29,17 +31,31 @@ function run(command, args, options = {}) {
   return execFileSync(command, args, { stdio: "inherit", shell, ...options });
 }
 
-function isPublished(name, version) {
+function read(command, args) {
   try {
-    const out = execFileSync("npm", ["view", `${name}@${version}`, "version"], {
+    return execFileSync(command, args, {
       encoding: "utf8",
       stdio: ["ignore", "pipe", "ignore"],
       shell,
-    });
-    return out.trim() === version;
+    }).trim();
   } catch {
-    return false; // 404: the package or the version does not exist yet
+    return null;
   }
+}
+
+/** Approved and public; a staged version is not visible here yet. */
+function isPublished(name, version) {
+  return read("npm", ["view", `${name}@${version}`, "version"]) === version;
+}
+
+function hasTag(tag) {
+  return Boolean(read("git", ["ls-remote", "--tags", "origin", `refs/tags/${tag}`]));
+}
+
+/** `true` for a draft release, `false` for a published one, `null` for none. */
+function isDraftRelease(tag) {
+  const out = read("gh", ["release", "view", tag, "--json", "isDraft", "--jq", ".isDraft"]);
+  return out === null ? null : out === "true";
 }
 
 /** The changelog section of one version, for the GitHub release notes. */
@@ -56,37 +72,64 @@ async function releaseNotes(dir, version) {
   }
 }
 
-const published = [];
-for (const dir of PACKAGES) {
-  const {
-    name,
-    version,
-    private: isPrivate,
-  } = JSON.parse(await readFile(join(root, dir, "package.json"), "utf8"));
-  if (isPrivate) continue;
-  if (isPublished(name, version)) {
-    console.log(`${name}@${version} is already on npm.`);
-    continue;
+async function packages() {
+  const result = [];
+  for (const dir of PACKAGES) {
+    const {
+      name,
+      version,
+      private: isPrivate,
+    } = JSON.parse(await readFile(join(root, dir, "package.json"), "utf8"));
+    if (!isPrivate) result.push({ dir, name, version, tag: `${name}@${version}` });
   }
-  const destination = await mkdtemp(join(tmpdir(), "tabellwerk-publish-"));
-  run("pnpm", ["pack", "--pack-destination", destination], { cwd: join(root, dir) });
-  const [tarball] = await readdir(destination);
-  const args = ["publish", join(destination, tarball), "--access", "public"];
-  args.push(provenance ? "--provenance" : "--provenance=false");
-  if (dryRun) args.push("--dry-run");
-  run("npm", args);
-  published.push({ dir, name, version });
+  return result;
 }
 
-if (published.length === 0) {
-  console.log("Nothing to publish.");
-} else if (!dryRun) {
-  for (const { dir, name, version } of published) {
-    const tag = `${name}@${version}`;
+async function stage() {
+  const staged = [];
+  for (const { dir, name, version, tag } of await packages()) {
+    // The tag is written when a version is staged, so it also marks versions
+    // that wait for approval (npm shows those only to maintainers).
+    if (hasTag(tag) || isPublished(name, version)) {
+      console.log(`${tag} is already staged or published.`);
+      continue;
+    }
+    const destination = await mkdtemp(join(tmpdir(), "tabellwerk-publish-"));
+    run("pnpm", ["pack", "--pack-destination", destination], { cwd: join(root, dir) });
+    const [tarball] = await readdir(destination);
+    const args = ["stage", "publish", join(destination, tarball), "--access", "public"];
+    args.push("--provenance");
+    if (dryRun) args.push("--dry-run");
+    run("npm", args);
+    staged.push({ dir, version, tag });
+  }
+  if (staged.length === 0) {
+    console.log("Nothing to stage.");
+    return;
+  }
+  if (dryRun) return;
+  for (const { dir, version, tag } of staged) {
     run("git", ["tag", tag]);
     run("git", ["push", "origin", tag]);
-    const notes = (await releaseNotes(dir, version)) || `Published ${tag} to npm.`;
-    run("gh", ["release", "create", tag, "--title", tag, "--notes", notes]);
+    const notes = (await releaseNotes(dir, version)) || `Released ${tag} on npm.`;
+    run("gh", ["release", "create", tag, "--draft", "--title", tag, "--notes", notes]);
+    console.log(`Staged: ${tag}`);
   }
 }
-for (const { name, version } of published) console.log(`New version: ${name}@${version}`);
+
+async function finishReleases() {
+  const finished = [];
+  for (const { name, version, tag } of await packages()) {
+    if (isDraftRelease(tag) !== true) continue;
+    if (!isPublished(name, version)) {
+      console.log(`${tag} is staged but not approved yet.`);
+      continue;
+    }
+    if (!dryRun) run("gh", ["release", "edit", tag, "--draft=false"]);
+    finished.push(tag);
+  }
+  if (finished.length === 0) console.log("No approved versions to finish.");
+  for (const tag of finished) console.log(`New version: ${tag}`);
+}
+
+await (finish ? finishReleases() : stage());
